@@ -1,9 +1,10 @@
 {
   "name": "streamline-admin-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "./build/index.js",
   "private": true,
+  "types": "./src/index.ts",
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack",
     "test": "mocha -r ts-node/register -r dotenv/config src/**/**/*.test.ts --timeout 240000"
