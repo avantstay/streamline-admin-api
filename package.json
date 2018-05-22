@@ -1,9 +1,9 @@
 {
   "name": "streamline-admin-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "./build/index.js",
-  "types": "./build/src/index.d.ts",
+  "types": "./build/index.d.ts",
   "private": true,
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack",

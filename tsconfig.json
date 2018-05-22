@@ -10,6 +10,7 @@
     "allowJs": false,
     "jsx": "react",
     "rootDir": "src",
+    "outDir": "",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
