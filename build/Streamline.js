@@ -58,7 +58,7 @@ var Streamline = /** @class */ (function () {
         this.username = params.username;
         this.password = params.password;
         this.companyId = params.companyId;
-        this.browser = puppeteer_1.default.launch({ headless: true });
+        this.browser = puppeteer_1.default.launch({ headless: false });
         this.page = this.browser
             .then(function (browser) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
             switch (_a.label) {
@@ -137,23 +137,26 @@ var Streamline = /** @class */ (function () {
                         return [4 /*yield*/, page.waitForSelector('[title=Source]')];
                     case 3:
                         _a.sent();
-                        return [4 /*yield*/, page.click('[title=Source]')];
+                        return [4 /*yield*/, page.waitFor(3000)];
                     case 4:
                         _a.sent();
-                        return [4 /*yield*/, page.waitFor(500)];
+                        return [4 /*yield*/, page.click('[title=Source]')];
                     case 5:
                         _a.sent();
-                        return [4 /*yield*/, page.evaluate(function () { return document.querySelector('textarea[role=textbox]').value = ''; })];
+                        return [4 /*yield*/, page.waitForSelector('textarea[role=textbox]')];
                     case 6:
                         _a.sent();
-                        return [4 /*yield*/, page.type('textarea[role=textbox]', newTemplateHtml)];
+                        return [4 /*yield*/, page.evaluate(function () { return document.querySelector('textarea[role=textbox]').value = ''; })];
                     case 7:
                         _a.sent();
-                        return [4 /*yield*/, page.click('[name=modify_button]')];
+                        return [4 /*yield*/, page.type('textarea[role=textbox]', newTemplateHtml)];
                     case 8:
                         _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('.tooltip')];
+                        return [4 /*yield*/, page.click('[name=modify_button]')];
                     case 9:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('.tooltip')];
+                    case 10:
                         _a.sent();
                         return [2 /*return*/];
                 }

@@ -19,7 +19,7 @@ export default class Streamline {
     this.password  = params.password
     this.companyId = params.companyId
 
-    this.browser = puppeteer.launch({ headless: true })
+    this.browser = puppeteer.launch({ headless: false })
     this.page    = this.browser
       .then(async browser => await browser.newPage())
       .then(async page => await this.authenticate(page))
@@ -54,8 +54,9 @@ export default class Streamline {
 
     await page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))
     await page.waitForSelector('[title=Source]')
+    await page.waitFor(3000)
     await page.click('[title=Source]')
-    await page.waitFor(500)
+    await page.waitForSelector('textarea[role=textbox]')
     await page.evaluate(() => (document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement).value = '')
     await page.type('textarea[role=textbox]', newTemplateHtml)
     await page.click('[name=modify_button]')
