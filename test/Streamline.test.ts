@@ -2,7 +2,6 @@ import Streamline from '../src/Streamline'
 import path from 'path'
 import * as fs from 'fs'
 
-let TIMEOUT     = 240000
 let templateId  = 27835
 let streamline: Streamline
 let credentials = {
@@ -27,14 +26,14 @@ describe('Email templates', () => {
       fs.mkdirSync(tempDir)
 
     await streamline.backupTemplate(templateId, tempDir)
-  }, TIMEOUT)
+  })
 
   it('Update template', async () => {
     const newTemplateHtml = `<html><body>${new Date().toISOString()}</body></html>`
     await streamline.updateEmailTemplate(templateId, newTemplateHtml)
-  }, TIMEOUT)
+  })
 
   it('Update home network id', async () => {
     await streamline.updateHomeNetworkId(209911, 314136)
-  }, TIMEOUT)
+  })
 })
