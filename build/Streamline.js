@@ -58,7 +58,7 @@ var Streamline = /** @class */ (function () {
         this.username = params.username;
         this.password = params.password;
         this.companyId = params.companyId;
-        this.browser = puppeteer_1.default.launch({ headless: false });
+        this.browser = puppeteer_1.default.launch({ headless: !!params.headless });
         this.page = this.browser
             .then(function (browser) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
             switch (_a.label) {
@@ -146,16 +146,16 @@ var Streamline = /** @class */ (function () {
                         return [4 /*yield*/, page.waitForSelector('textarea[role=textbox]')];
                     case 6:
                         _a.sent();
-                        return [4 /*yield*/, page.evaluate(function () { return document.querySelector('textarea[role=textbox]').value = ''; })];
+                        return [4 /*yield*/, page.evaluate(function (newTemplate) { return document.querySelector('textarea[role=textbox]').value = newTemplate; }, newTemplateHtml)];
                     case 7:
                         _a.sent();
-                        return [4 /*yield*/, page.type('textarea[role=textbox]', newTemplateHtml)];
+                        return [4 /*yield*/, page.click('[name=modify_button]')];
                     case 8:
                         _a.sent();
-                        return [4 /*yield*/, page.click('[name=modify_button]')];
+                        return [4 /*yield*/, page.waitForSelector('.tooltip')];
                     case 9:
                         _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('.tooltip')];
+                        return [4 /*yield*/, page.waitFor(1000)];
                     case 10:
                         _a.sent();
                         return [2 /*return*/];

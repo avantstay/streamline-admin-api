@@ -14,12 +14,12 @@ export default class Streamline {
   private readonly companyId: number
   private readonly page: Promise<Page>
 
-  constructor(params: { username: string, password: string, companyId: number }) {
+  constructor(params: { username: string, password: string, companyId: number, headless?: boolean }) {
     this.username  = params.username
     this.password  = params.password
     this.companyId = params.companyId
 
-    this.browser = puppeteer.launch({ headless: false })
+    this.browser = puppeteer.launch({ headless: !!params.headless })
     this.page    = this.browser
       .then(async browser => await browser.newPage())
       .then(async page => await this.authenticate(page))
@@ -57,10 +57,10 @@ export default class Streamline {
     await page.waitFor(3000)
     await page.click('[title=Source]')
     await page.waitForSelector('textarea[role=textbox]')
-    await page.evaluate(() => (document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement).value = '')
-    await page.type('textarea[role=textbox]', newTemplateHtml)
+    await page.evaluate((newTemplate) => (document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement).value = newTemplate, newTemplateHtml)
     await page.click('[name=modify_button]')
     await page.waitForSelector('.tooltip')
+    await page.waitFor(1000)
   }
 
   async updateHomeNetworkId(homeLocationId: number, newNetworkId: number) {

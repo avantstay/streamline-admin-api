@@ -8,6 +8,7 @@ export default class Streamline {
         username: string;
         password: string;
         companyId: number;
+        headless?: boolean;
     });
     private authenticate(page);
     backupTemplate(templateId: number, destinationFolder: string): Promise<void>;
