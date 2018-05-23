@@ -1,8 +1,9 @@
-import Streamline from '../Streamline'
+import Streamline from '../src/Streamline'
 import path from 'path'
+import * as fs from 'fs'
 
 let TIMEOUT     = 240000
-let templateId = 27835
+let templateId  = 27835
 let streamline: Streamline
 let credentials = {
   username : process.env.STREAMLINE_USERNAME as string,
@@ -20,7 +21,12 @@ describe('Email templates', () => {
   })
 
   it('Backup template', async () => {
-    await streamline.backupTemplate(templateId, path.join(__dirname, 'temp'))
+    const tempDir = path.join(__dirname, 'temp')
+
+    if (!fs.existsSync(tempDir))
+      fs.mkdirSync(tempDir)
+
+    await streamline.backupTemplate(templateId, tempDir)
   }, TIMEOUT)
 
   it('Update template', async () => {

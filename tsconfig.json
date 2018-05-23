@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "module": "esnext",
+    "module": "commonjs",
     "lib": [
       "es6",
       "dom"
     ],
     "declaration": true,
     "allowJs": false,
-    "jsx": "react",
     "rootDir": "src",
-    "outDir": "",
+    "outDir": "build",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -25,5 +24,8 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
-  }
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
 }

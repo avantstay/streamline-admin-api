@@ -1,13 +1,13 @@
 {
   "name": "streamline-admin-api",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "private": true,
   "scripts": {
-    "build": "cross-env NODE_ENV=production webpack",
-    "test": "mocha -r ts-node/register -r dotenv/config src/**/**/*.test.ts --timeout 240000"
+    "build": "tsc",
+    "test": "mocha -r ts-node/register -r dotenv/config test/**/**/*.test.ts --timeout 240000"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,11 @@
   "license": "none",
   "bugs": {
     "url": "https://github.com/avantstay/streamline-admin-api/issues"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build&git add --all"
+    }
   },
   "homepage": "https://github.com/avantstay/streamline-admin-api#readme",
   "dependencies": {
@@ -28,6 +33,7 @@
     "chai": "^4.1.2",
     "clean-webpack-plugin": "^0.1.19",
     "dotenv": "^5.0.1",
+    "husky": "^1.0.0-rc.6",
     "mocha": "^5.2.0",
     "puppeteer": "^1.4.0",
     "ts-loader": "^4.3.0",

@@ -1,2 +1,2 @@
-import Streamline from "./Streamline";
-export default Streamline;
+declare const _default: "./Streamline";
+export default _default;

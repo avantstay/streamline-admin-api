@@ -1,3 +1,2 @@
-import Streamline from "./Streamline";
+export default './Streamline'
 
-export default Streamline
