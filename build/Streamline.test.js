@@ -109,11 +109,13 @@ describe('Email templates', function () {
         });
     }); });
     it('Get unactioned emails', function () { return __awaiter(_this, void 0, void 0, function () {
+        var emails;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, streamline.getAllUnactionedEmails()];
                 case 1:
-                    _a.sent();
+                    emails = _a.sent();
+                    console.log(emails);
                     return [2 /*return*/];
             }
         });

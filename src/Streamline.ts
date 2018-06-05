@@ -2,11 +2,13 @@ import puppeteer, {Browser, Page} from 'puppeteer'
 import * as fs from 'fs'
 import * as path from 'path'
 
-const BASE_URL           = 'https://admin.streamlinevrs.com'
-const INITIAL_SCREEN_URL = `${BASE_URL}/index.html`
-const LOGIN_URL          = `${BASE_URL}/auth_login.html?logout=1`
-const EMAIL_TEMPLATE_URL = (templateId: number, companyId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
-const EDIT_HOME_URL      = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
+const BASE_URL              = 'https://admin.streamlinevrs.com'
+// const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
+const UNACTIONED_EMAILS_URL = `${BASE_URL}/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
+// const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
+const LOGIN_URL             = `${BASE_URL}/auth_login.html?logout=1`
+const EMAIL_TEMPLATE_URL    = (templateId: number, companyId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
+const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
 
 export default class Streamline {
   private browser: Promise<Browser>
@@ -34,7 +36,8 @@ export default class Streamline {
     await page.type('#user_password', this.password)
 
     await page.click('#submit_button')
-    await page.waitForSelector('#page_title_bar_title')
+    await page.waitForFunction(() => /index.html/.test(window.location.pathname))
+    // await page.waitForSelector('#page_title_bar_title')
 
     return page
   }
@@ -81,15 +84,15 @@ export default class Streamline {
   async getAllUnactionedEmails() {
     const page = await this.page
 
-    await page.goto(INITIAL_SCREEN_URL)
-    await page.waitForSelector('#email_div a')
-    await page.click('#email_div a')
-    await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
-    await page.click('input[name="button_view_all"], button[name="button_view_all"]')
-    await page.waitForSelector('#frontdesk_content table.table_results')
+    await page.goto(UNACTIONED_EMAILS_URL)
+    // await page.waitForSelector('#email_div a')
+    // await page.click('#email_div a')
+    // await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
+    // await page.click('input[name="button_view_all"], button[name="button_view_all"]')
+    await page.waitForSelector('table.table_results')
 
     return await page.evaluate(() => {
-      const table            = document.querySelector('#frontdesk_content table.table_results') as HTMLElement
+      const table            = document.querySelector('table.table_results') as HTMLElement
       const headCells        = table.querySelectorAll('thead th')
       const headCellsContent = Array.prototype.map.call(headCells, (it: HTMLElement) => it.textContent as string) as Array<string>
 

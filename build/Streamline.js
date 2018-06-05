@@ -49,7 +49,9 @@ var puppeteer_1 = __importDefault(require("puppeteer"));
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
 var BASE_URL = 'https://admin.streamlinevrs.com';
-var INITIAL_SCREEN_URL = BASE_URL + "/index.html";
+// const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
+var UNACTIONED_EMAILS_URL = BASE_URL + "/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC";
+// const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
 var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
@@ -93,9 +95,12 @@ var Streamline = /** @class */ (function () {
                         return [4 /*yield*/, page.click('#submit_button')];
                     case 5:
                         _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('#page_title_bar_title')];
+                        return [4 /*yield*/, page.waitForFunction(function () { return /index.html/.test(window.location.pathname); })
+                            // await page.waitForSelector('#page_title_bar_title')
+                        ];
                     case 6:
                         _a.sent();
+                        // await page.waitForSelector('#page_title_bar_title')
                         return [2 /*return*/, page];
                 }
             });
@@ -212,26 +217,27 @@ var Streamline = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.page];
                     case 1:
                         page = _a.sent();
-                        return [4 /*yield*/, page.goto(INITIAL_SCREEN_URL)];
+                        return [4 /*yield*/, page.goto(UNACTIONED_EMAILS_URL)
+                            // await page.waitForSelector('#email_div a')
+                            // await page.click('#email_div a')
+                            // await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
+                            // await page.click('input[name="button_view_all"], button[name="button_view_all"]')
+                        ];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('#email_div a')];
+                        // await page.waitForSelector('#email_div a')
+                        // await page.click('#email_div a')
+                        // await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
+                        // await page.click('input[name="button_view_all"], button[name="button_view_all"]')
+                        return [4 /*yield*/, page.waitForSelector('table.table_results')];
                     case 3:
-                        _a.sent();
-                        return [4 /*yield*/, page.click('#email_div a')];
-                    case 4:
-                        _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')];
-                    case 5:
-                        _a.sent();
-                        return [4 /*yield*/, page.click('input[name="button_view_all"], button[name="button_view_all"]')];
-                    case 6:
-                        _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('#frontdesk_content table.table_results')];
-                    case 7:
+                        // await page.waitForSelector('#email_div a')
+                        // await page.click('#email_div a')
+                        // await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
+                        // await page.click('input[name="button_view_all"], button[name="button_view_all"]')
                         _a.sent();
                         return [4 /*yield*/, page.evaluate(function () {
-                                var table = document.querySelector('#frontdesk_content table.table_results');
+                                var table = document.querySelector('table.table_results');
                                 var headCells = table.querySelectorAll('thead th');
                                 var headCellsContent = Array.prototype.map.call(headCells, function (it) { return it.textContent; });
                                 var fromCol = headCellsContent.findIndex(function (it) { return /from/i.test(it); });
@@ -271,7 +277,7 @@ var Streamline = /** @class */ (function () {
                                     };
                                 });
                             })];
-                    case 8: return [2 /*return*/, _a.sent()];
+                    case 4: return [2 /*return*/, _a.sent()];
                 }
             });
         });
