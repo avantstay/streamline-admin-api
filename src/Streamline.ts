@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 const BASE_URL           = 'https://admin.streamlinevrs.com'
+const INITIAL_SCREEN_URL = `${BASE_URL}/index.html`
 const LOGIN_URL          = `${BASE_URL}/auth_login.html?logout=1`
 const EMAIL_TEMPLATE_URL = (templateId: number, companyId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
 const EDIT_HOME_URL      = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
@@ -19,7 +20,7 @@ export default class Streamline {
     this.password  = params.password
     this.companyId = params.companyId
 
-    this.browser = puppeteer.launch({ headless: !!params.headless })
+    this.browser = puppeteer.launch({headless: !!params.headless})
     this.page    = this.browser
       .then(async browser => await browser.newPage())
       .then(async page => await this.authenticate(page))
@@ -75,6 +76,72 @@ export default class Streamline {
     await page.click('.yui-dialog #yui-gen0-button')
     await page.waitFor(1000)
     await page.waitForSelector('input[name=property_variable_5028]')
+  }
+
+  async getAllUnactionedEmails() {
+    const page = await this.page
+
+    await page.goto(INITIAL_SCREEN_URL)
+    await page.waitForSelector('#email_div a')
+    await page.click('#email_div a')
+    await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
+    await page.click('input[name="button_view_all"], button[name="button_view_all"]')
+    await page.waitForSelector('#frontdesk_content table.table_results')
+
+    return await page.evaluate(() => {
+      const table            = document.querySelector('#frontdesk_content table.table_results') as HTMLElement
+      const headCells        = table.querySelectorAll('thead th')
+      const headCellsContent = Array.prototype.map.call(headCells, (it: HTMLElement) => it.textContent as string) as Array<string>
+
+      const fromCol    = headCellsContent.findIndex(it => /from/i.test(it))
+      const subjectCol = headCellsContent.findIndex(it => /subject/i.test(it))
+      const dateCol    = headCellsContent.findIndex(it => /date/i.test(it))
+
+      const emailRows = table.querySelectorAll('tbody tr')
+
+      const timezone          = -7
+      const timezoneFormatted = `${timezone > 0 ? '+' : '-'}${Math.abs(timezone).toString().padStart(2, '0')}:00`
+
+      return Array.prototype.map.call(emailRows, (it: HTMLElement) => {
+        const nameAndEmailContent = Array.prototype.map.call(
+          it.querySelectorAll(`td:nth-child(${fromCol + 1}) span`),
+          (it: HTMLElement) => it.textContent)
+
+        const name          = nameAndEmailContent.find((it: string) => !/@[^.]+\./.test(it)) || ''
+        const email         = nameAndEmailContent.find((it: string) => /@[^.]+\./.test(it))
+        const subjectLink   = it.querySelector(`td:nth-child(${subjectCol + 1}) a`) as HTMLElement
+        const id            = ((subjectLink.getAttribute('onclick') as string).match(/\d+/) as Array<string>)[0]
+        const subject       = subjectLink.textContent as string
+        const date          = (it.querySelector(`td:nth-child(${dateCol + 1})`) as HTMLElement).textContent as string
+        const dateFormatted = date
+          .replace(/(\d{2})\/(\d{2})\/(\d{2}) (\d{2}:\d{2}[ap]m)/i, `20$3-$1-$2T$4:00${timezoneFormatted}`)
+          .replace(/(\d{2}:\d{2}[ap]m)/i, (it: string) => {
+            let hours   = parseInt((it.match(/^(\d+)/) as Array<any>)[1], 10)
+            let minutes = parseInt((it.match(/:(\d+)/) as Array<any>)[1], 10)
+
+            const ampm = (it.match(/([ap]m)$/) as Array<any>)[1]
+
+            if (/pm/i.test(ampm) && hours < 12)
+              hours = hours + 12
+            if (/am/i.test(ampm) && hours === 12)
+              hours = hours - 12
+
+            const sHours   = hours.toString().padStart(2, '0')
+            const sMinutes = minutes.toString().padStart(2, '0')
+
+            return `${sHours}:${sMinutes}`
+          })
+
+
+        return {
+          id,
+          name,
+          email,
+          subject,
+          date: new Date(dateFormatted).toISOString()
+        }
+      })
+    })
   }
 
   async close() {

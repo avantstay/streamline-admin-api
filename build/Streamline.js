@@ -49,6 +49,7 @@ var puppeteer_1 = __importDefault(require("puppeteer"));
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
 var BASE_URL = 'https://admin.streamlinevrs.com';
+var INITIAL_SCREEN_URL = BASE_URL + "/index.html";
 var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
 var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
@@ -199,6 +200,78 @@ var Streamline = /** @class */ (function () {
                     case 10:
                         _a.sent();
                         return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Streamline.prototype.getAllUnactionedEmails = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var page;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.page];
+                    case 1:
+                        page = _a.sent();
+                        return [4 /*yield*/, page.goto(INITIAL_SCREEN_URL)];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('#email_div a')];
+                    case 3:
+                        _a.sent();
+                        return [4 /*yield*/, page.click('#email_div a')];
+                    case 4:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')];
+                    case 5:
+                        _a.sent();
+                        return [4 /*yield*/, page.click('input[name="button_view_all"], button[name="button_view_all"]')];
+                    case 6:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('#frontdesk_content table.table_results')];
+                    case 7:
+                        _a.sent();
+                        return [4 /*yield*/, page.evaluate(function () {
+                                var table = document.querySelector('#frontdesk_content table.table_results');
+                                var headCells = table.querySelectorAll('thead th');
+                                var headCellsContent = Array.prototype.map.call(headCells, function (it) { return it.textContent; });
+                                var fromCol = headCellsContent.findIndex(function (it) { return /from/i.test(it); });
+                                var subjectCol = headCellsContent.findIndex(function (it) { return /subject/i.test(it); });
+                                var dateCol = headCellsContent.findIndex(function (it) { return /date/i.test(it); });
+                                var emailRows = table.querySelectorAll('tbody tr');
+                                var timezone = -7;
+                                var timezoneFormatted = "" + (timezone > 0 ? '+' : '-') + Math.abs(timezone).toString().padStart(2, '0') + ":00";
+                                return Array.prototype.map.call(emailRows, function (it) {
+                                    var nameAndEmailContent = Array.prototype.map.call(it.querySelectorAll("td:nth-child(" + (fromCol + 1) + ") span"), function (it) { return it.textContent; });
+                                    var name = nameAndEmailContent.find(function (it) { return !/@[^.]+\./.test(it); }) || '';
+                                    var email = nameAndEmailContent.find(function (it) { return /@[^.]+\./.test(it); });
+                                    var subjectLink = it.querySelector("td:nth-child(" + (subjectCol + 1) + ") a");
+                                    var id = subjectLink.getAttribute('onclick').match(/\d+/)[0];
+                                    var subject = subjectLink.textContent;
+                                    var date = it.querySelector("td:nth-child(" + (dateCol + 1) + ")").textContent;
+                                    var dateFormatted = date
+                                        .replace(/(\d{2})\/(\d{2})\/(\d{2}) (\d{2}:\d{2}[ap]m)/i, "20$3-$1-$2T$4:00" + timezoneFormatted)
+                                        .replace(/(\d{2}:\d{2}[ap]m)/i, function (it) {
+                                        var hours = parseInt(it.match(/^(\d+)/)[1], 10);
+                                        var minutes = parseInt(it.match(/:(\d+)/)[1], 10);
+                                        var ampm = it.match(/([ap]m)$/)[1];
+                                        if (/pm/i.test(ampm) && hours < 12)
+                                            hours = hours + 12;
+                                        if (/am/i.test(ampm) && hours === 12)
+                                            hours = hours - 12;
+                                        var sHours = hours.toString().padStart(2, '0');
+                                        var sMinutes = minutes.toString().padStart(2, '0');
+                                        return sHours + ":" + sMinutes;
+                                    });
+                                    return {
+                                        id: id,
+                                        name: name,
+                                        email: email,
+                                        subject: subject,
+                                        date: new Date(dateFormatted).toISOString()
+                                    };
+                                });
+                            })];
+                    case 8: return [2 /*return*/, _a.sent()];
                 }
             });
         });

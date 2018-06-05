@@ -1,6 +1,6 @@
 import Streamline from '../src/Streamline'
-// import path from 'path'
-// import * as fs from 'fs'
+import * as path from 'path'
+import * as fs from 'fs'
 
 let templateId  = 27835
 let streamline: Streamline
@@ -19,21 +19,25 @@ describe('Email templates', () => {
     await streamline.close()
   })
 
-  // it('Backup template', async () => {
-  //   const tempDir = path.join(__dirname, 'temp')
-  //
-  //   if (!fs.existsSync(tempDir))
-  //     fs.mkdirSync(tempDir)
-  //
-  //   await streamline.backupTemplate(templateId, tempDir)
-  // })
+  it('Backup template', async () => {
+    const tempDir = path.join(__dirname, 'temp')
+
+    if (!fs.existsSync(tempDir))
+      fs.mkdirSync(tempDir)
+
+    await streamline.backupTemplate(templateId, tempDir)
+  })
 
   it('Update template', async () => {
     const newTemplateHtml = `<html><body>${new Date().toISOString()}</body></html>`
     await streamline.updateEmailTemplate(templateId, newTemplateHtml)
   })
 
-  // it('Update home network id', async () => {
-  //   await streamline.updateHomeNetworkId(209911, 314136)
-  // })
+  it('Update home network id', async () => {
+    await streamline.updateHomeNetworkId(209911, 314136)
+  })
+
+  it('Get unactioned emails', async () => {
+    await streamline.getAllUnactionedEmails()
+  })
 })

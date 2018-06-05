@@ -14,5 +14,6 @@ export default class Streamline {
     backupTemplate(templateId: number, destinationFolder: string): Promise<void>;
     updateEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void>;
     updateHomeNetworkId(homeLocationId: number, newNetworkId: number): Promise<void>;
+    getAllUnactionedEmails(): Promise<any>;
     close(): Promise<void>;
 }
