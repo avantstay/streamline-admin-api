@@ -11,7 +11,7 @@ const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?ho
 // const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
 // const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 
-interface Email {
+export interface Email {
   id: number;
   name: string;
   email: string;

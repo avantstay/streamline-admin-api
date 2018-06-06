@@ -1,3 +1,10 @@
+export interface Email {
+    id: number;
+    name: string;
+    email: string;
+    subject: string;
+    date: string;
+}
 export default class Streamline {
     private browser;
     private readonly username;
@@ -14,7 +21,7 @@ export default class Streamline {
     backupTemplate(templateId: number, destinationFolder: string): Promise<void>;
     updateEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void>;
     updateHomeNetworkId(homeLocationId: number, newNetworkId: number): Promise<void>;
-    getAllUnactionedEmails(): Promise<any>;
+    getAllUnactionedEmails(): Promise<Array<Email>>;
     replyEmail(emailId: string | number, responseHtml: string): Promise<void>;
     close(): Promise<void>;
 }
