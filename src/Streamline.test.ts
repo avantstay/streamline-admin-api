@@ -41,4 +41,8 @@ describe('Email templates', () => {
     const emails = await streamline.getAllUnactionedEmails()
     console.log(emails)
   })
+
+  it('Reply an email', async () => {
+    await streamline.replyEmail(56556933, `<p>Hey ho, let's go! ${new Date().toISOString()}</p>`)
+  })
 })

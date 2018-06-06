@@ -3,12 +3,13 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 const BASE_URL              = 'https://admin.streamlinevrs.com'
-// const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
 const UNACTIONED_EMAILS_URL = `${BASE_URL}/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
-// const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 const LOGIN_URL             = `${BASE_URL}/auth_login.html?logout=1`
+const REPLY_EMAIL_URL       = (id: string | number) => `${BASE_URL}/edit_system_email_reply.html?id=${id}&replay_all=1`
 const EMAIL_TEMPLATE_URL    = (templateId: number, companyId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
 const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
+// const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
+// const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 
 export default class Streamline {
   private browser: Promise<Browser>
@@ -85,10 +86,6 @@ export default class Streamline {
     const page = await this.page
 
     await page.goto(UNACTIONED_EMAILS_URL)
-    // await page.waitForSelector('#email_div a')
-    // await page.click('#email_div a')
-    // await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
-    // await page.click('input[name="button_view_all"], button[name="button_view_all"]')
     await page.waitForSelector('table.table_results')
 
     return await page.evaluate(() => {
@@ -145,6 +142,25 @@ export default class Streamline {
         }
       })
     })
+  }
+
+  async replyEmail(emailId: string | number, responseHtml: string) {
+    const page = await this.page
+    await page.goto(REPLY_EMAIL_URL(emailId))
+
+    await page.waitForSelector('[title=Source]')
+    await page.waitFor(3000)
+    await page.click('[title=Source]')
+    await page.waitForSelector('textarea[role=textbox]')
+
+    await page.evaluate((responseHtml) => {
+      const textArea        = document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement
+      const originalContent = textArea.value as string
+      textArea.value        = originalContent.replace(/(<body.*?>)([^]*?)(-+\s?original message\s?-+)/i, `$1\n${responseHtml}\n<p>&nbsp;</p>\n$3`)
+    }, responseHtml)
+
+    await page.evaluate(() => (window as any).verifyForm())
+    await page.waitFor(2000)
   }
 
   async close() {

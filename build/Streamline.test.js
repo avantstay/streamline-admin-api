@@ -120,4 +120,14 @@ describe('Email templates', function () {
             }
         });
     }); });
+    it('Reply an email', function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, streamline.replyEmail(56556933, "<p>Hey ho, let's go! " + new Date().toISOString() + "</p>")];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
 });

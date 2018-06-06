@@ -49,12 +49,13 @@ var puppeteer_1 = __importDefault(require("puppeteer"));
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
 var BASE_URL = 'https://admin.streamlinevrs.com';
-// const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
 var UNACTIONED_EMAILS_URL = BASE_URL + "/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC";
-// const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
+var REPLY_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email_reply.html?id=" + id + "&replay_all=1"; };
 var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
+// const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
+// const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 var Streamline = /** @class */ (function () {
     function Streamline(params) {
         var _this = this;
@@ -217,24 +218,11 @@ var Streamline = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.page];
                     case 1:
                         page = _a.sent();
-                        return [4 /*yield*/, page.goto(UNACTIONED_EMAILS_URL)
-                            // await page.waitForSelector('#email_div a')
-                            // await page.click('#email_div a')
-                            // await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
-                            // await page.click('input[name="button_view_all"], button[name="button_view_all"]')
-                        ];
+                        return [4 /*yield*/, page.goto(UNACTIONED_EMAILS_URL)];
                     case 2:
                         _a.sent();
-                        // await page.waitForSelector('#email_div a')
-                        // await page.click('#email_div a')
-                        // await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
-                        // await page.click('input[name="button_view_all"], button[name="button_view_all"]')
                         return [4 /*yield*/, page.waitForSelector('table.table_results')];
                     case 3:
-                        // await page.waitForSelector('#email_div a')
-                        // await page.click('#email_div a')
-                        // await page.waitForSelector('input[name="button_view_all"], button[name="button_view_all"]')
-                        // await page.click('input[name="button_view_all"], button[name="button_view_all"]')
                         _a.sent();
                         return [4 /*yield*/, page.evaluate(function () {
                                 var table = document.querySelector('table.table_results');
@@ -278,6 +266,47 @@ var Streamline = /** @class */ (function () {
                                 });
                             })];
                     case 4: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    Streamline.prototype.replyEmail = function (emailId, responseHtml) {
+        return __awaiter(this, void 0, void 0, function () {
+            var page;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.page];
+                    case 1:
+                        page = _a.sent();
+                        return [4 /*yield*/, page.goto(REPLY_EMAIL_URL(emailId))];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('[title=Source]')];
+                    case 3:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitFor(3000)];
+                    case 4:
+                        _a.sent();
+                        return [4 /*yield*/, page.click('[title=Source]')];
+                    case 5:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('textarea[role=textbox]')];
+                    case 6:
+                        _a.sent();
+                        return [4 /*yield*/, page.evaluate(function (responseHtml) {
+                                var textArea = document.querySelector('textarea[role=textbox]');
+                                var originalContent = textArea.value;
+                                textArea.value = originalContent.replace(/(<body.*?>)([^]*?)(-+\s?original message\s?-+)/i, "$1\n" + responseHtml + "\n<p>&nbsp;</p>\n$3");
+                            }, responseHtml)];
+                    case 7:
+                        _a.sent();
+                        return [4 /*yield*/, page.evaluate(function () { return window.verifyForm(); })];
+                    case 8:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitFor(2000)];
+                    case 9:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });
