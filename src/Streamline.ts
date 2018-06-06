@@ -1,4 +1,4 @@
-import puppeteer, {Browser, Page} from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -10,6 +10,14 @@ const EMAIL_TEMPLATE_URL    = (templateId: number, companyId: number) => `${BASE
 const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
 // const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
 // const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
+
+interface Email {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  date: string;
+}
 
 export default class Streamline {
   private browser: Promise<Browser>
@@ -23,7 +31,7 @@ export default class Streamline {
     this.password  = params.password
     this.companyId = params.companyId
 
-    this.browser = puppeteer.launch({headless: !!params.headless})
+    this.browser = puppeteer.launch({ headless: !!params.headless })
     this.page    = this.browser
       .then(async browser => await browser.newPage())
       .then(async page => await this.authenticate(page))
@@ -82,7 +90,7 @@ export default class Streamline {
     await page.waitForSelector('input[name=property_variable_5028]')
   }
 
-  async getAllUnactionedEmails() {
+  async getAllUnactionedEmails(): Promise<Array<Email>> {
     const page = await this.page
 
     await page.goto(UNACTIONED_EMAILS_URL)
@@ -110,16 +118,16 @@ export default class Streamline {
         const name          = nameAndEmailContent.find((it: string) => !/@[^.]+\./.test(it)) || ''
         const email         = nameAndEmailContent.find((it: string) => /@[^.]+\./.test(it))
         const subjectLink   = it.querySelector(`td:nth-child(${subjectCol + 1}) a`) as HTMLElement
-        const id            = ((subjectLink.getAttribute('onclick') as string).match(/\d+/) as Array<string>)[0]
+        const id            = ((subjectLink.getAttribute('onclick') as string).match(/\d+/) as Array<string>)[ 0 ]
         const subject       = subjectLink.textContent as string
         const date          = (it.querySelector(`td:nth-child(${dateCol + 1})`) as HTMLElement).textContent as string
         const dateFormatted = date
           .replace(/(\d{2})\/(\d{2})\/(\d{2}) (\d{2}:\d{2}[ap]m)/i, `20$3-$1-$2T$4:00${timezoneFormatted}`)
           .replace(/(\d{2}:\d{2}[ap]m)/i, (it: string) => {
-            let hours   = parseInt((it.match(/^(\d+)/) as Array<any>)[1], 10)
-            let minutes = parseInt((it.match(/:(\d+)/) as Array<any>)[1], 10)
+            let hours   = parseInt((it.match(/^(\d+)/) as Array<any>)[ 1 ], 10)
+            let minutes = parseInt((it.match(/:(\d+)/) as Array<any>)[ 1 ], 10)
 
-            const ampm = (it.match(/([ap]m)$/) as Array<any>)[1]
+            const ampm = (it.match(/([ap]m)$/) as Array<any>)[ 1 ]
 
             if (/pm/i.test(ampm) && hours < 12)
               hours = hours + 12

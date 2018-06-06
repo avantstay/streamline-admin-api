@@ -54,8 +54,6 @@ var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
 var REPLY_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email_reply.html?id=" + id + "&replay_all=1"; };
 var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
-// const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
-// const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 var Streamline = /** @class */ (function () {
     function Streamline(params) {
         var _this = this;
