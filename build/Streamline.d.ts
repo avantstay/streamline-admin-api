@@ -3,6 +3,7 @@ export interface Email {
     name: string;
     email: string;
     subject: string;
+    opened: boolean;
     date: string;
     html?: string;
 }
@@ -12,11 +13,13 @@ export default class Streamline {
     private readonly password;
     private readonly companyId;
     private readonly page;
+    private readonly timezone;
     constructor(params: {
         username: string;
         password: string;
         companyId: number;
         headless?: boolean;
+        timezone?: number;
     });
     private authenticate(page);
     backupTemplate(templateId: number, destinationFolder: string): Promise<void>;

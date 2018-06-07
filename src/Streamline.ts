@@ -16,6 +16,7 @@ export interface Email {
   name: string;
   email: string;
   subject: string;
+  opened: boolean;
   date: string;
   html?: string;
 }
@@ -26,11 +27,13 @@ export default class Streamline {
   private readonly password: string
   private readonly companyId: number
   private readonly page: Promise<Page>
+  private readonly timezone: number
 
-  constructor(params: { username: string, password: string, companyId: number, headless?: boolean }) {
+  constructor(params: { username: string, password: string, companyId: number, headless?: boolean, timezone?: number }) {
     this.username  = params.username
     this.password  = params.password
     this.companyId = params.companyId
+    this.timezone  = params.timezone || -7
 
     this.browser = puppeteer.launch({ headless: !!params.headless })
     this.page    = this.browser
@@ -97,7 +100,7 @@ export default class Streamline {
     await page.goto(UNACTIONED_EMAILS_URL)
     await page.waitForSelector('table.table_results')
 
-    const emails: Array<Email> = await page.evaluate(() => {
+    const emails: Array<Email> = await page.evaluate((timezone) => {
       const table            = document.querySelector('table.table_results') as HTMLElement
       const headCells        = table.querySelectorAll('thead th')
       const headCellsContent = Array.prototype.map.call(headCells, (it: HTMLElement) => it.textContent as string) as Array<string>
@@ -105,24 +108,25 @@ export default class Streamline {
       const fromCol    = headCellsContent.findIndex(it => /from/i.test(it))
       const subjectCol = headCellsContent.findIndex(it => /subject/i.test(it))
       const dateCol    = headCellsContent.findIndex(it => /date/i.test(it))
+      const openCol    = headCellsContent.findIndex(it => /open/i.test(it))
 
       const emailRows = table.querySelectorAll('tbody tr')
 
-      const timezone          = -7
       const timezoneFormatted = `${timezone > 0 ? '+' : '-'}${Math.abs(timezone).toString().padStart(2, '0')}:00`
 
       return Array.prototype.map.call(emailRows, (it: HTMLElement) => {
-        const nameAndEmailContent = Array.prototype.map.call(
-          it.querySelectorAll(`td:nth-child(${fromCol + 1}) span`),
-          (it: HTMLElement) => it.textContent)
+        const nameAndEmailContent = Array.prototype.map.call(it.querySelectorAll(`td:nth-child(${fromCol + 1}) span`), (it: HTMLElement) => it.textContent)
 
-        const name          = nameAndEmailContent.find((it: string) => !/@[^.]+\./.test(it)) || ''
-        const email         = nameAndEmailContent.find((it: string) => /@[^.]+\./.test(it))
-        const subjectLink   = it.querySelector(`td:nth-child(${subjectCol + 1}) a`) as HTMLElement
-        const id            = ((subjectLink.getAttribute('onclick') as string).match(/\d+/) as Array<string>)[ 0 ]
-        const subject       = subjectLink.textContent as string
-        const date          = (it.querySelector(`td:nth-child(${dateCol + 1})`) as HTMLElement).textContent as string
-        const dateFormatted = date
+        const name  = nameAndEmailContent.find((it: string) => !/@[^.]+\./.test(it)) || ''
+        const email = nameAndEmailContent.find((it: string) => /@[^.]+\./.test(it))
+
+        const opened      = !!it.querySelector(`td:nth-child(${openCol + 1}) img`)
+        const subjectLink = it.querySelector(`td:nth-child(${subjectCol + 1}) a`) as HTMLElement
+        const id          = ((subjectLink.getAttribute('onclick') as string).match(/\d+/) as Array<string>)[ 0 ]
+        const subject     = subjectLink.textContent as string
+        const rawDate     = (it.querySelector(`td:nth-child(${dateCol + 1})`) as HTMLElement).textContent as string
+
+        const dateFormatted = rawDate
           .replace(/(\d{2})\/(\d{2})\/(\d{2}) (\d{2}:\d{2}[ap]m)/i, `20$3-$1-$2T$4:00${timezoneFormatted}`)
           .replace(/(\d{2}:\d{2}[ap]m)/i, (it: string) => {
             let hours   = parseInt((it.match(/^(\d+)/) as Array<any>)[ 1 ], 10)
@@ -132,6 +136,7 @@ export default class Streamline {
 
             if (/pm/i.test(ampm) && hours < 12)
               hours = hours + 12
+
             if (/am/i.test(ampm) && hours === 12)
               hours = hours - 12
 
@@ -141,23 +146,25 @@ export default class Streamline {
             return `${sHours}:${sMinutes}`
           })
 
-
         return {
           id,
           name,
           email,
           subject,
+          opened,
           date: new Date(dateFormatted).toISOString()
         }
       })
-    })
+    }, this.timezone)
 
     for (let email of emails) {
-      const response = await page.goto(`https://admin.streamlinevrs.com/print_email_preview.html?id=${email.id}`) as Response
-      email.html = await response.text()
+      if (email.email) {
+        const response = await page.goto(`https://admin.streamlinevrs.com/print_email_preview.html?id=${email.id}`) as Response
+        email.html     = await response.text()
+      }
     }
 
-    return emails
+    return emails.filter(it => it.email)
   }
 
   async replyEmail(emailId: string | number, responseHtml: string) {

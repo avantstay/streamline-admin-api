@@ -60,6 +60,7 @@ var Streamline = /** @class */ (function () {
         this.username = params.username;
         this.password = params.password;
         this.companyId = params.companyId;
+        this.timezone = params.timezone || -7;
         this.browser = puppeteer_1.default.launch({ headless: !!params.headless });
         this.page = this.browser
             .then(function (browser) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
@@ -222,25 +223,26 @@ var Streamline = /** @class */ (function () {
                         return [4 /*yield*/, page.waitForSelector('table.table_results')];
                     case 3:
                         _b.sent();
-                        return [4 /*yield*/, page.evaluate(function () {
+                        return [4 /*yield*/, page.evaluate(function (timezone) {
                                 var table = document.querySelector('table.table_results');
                                 var headCells = table.querySelectorAll('thead th');
                                 var headCellsContent = Array.prototype.map.call(headCells, function (it) { return it.textContent; });
                                 var fromCol = headCellsContent.findIndex(function (it) { return /from/i.test(it); });
                                 var subjectCol = headCellsContent.findIndex(function (it) { return /subject/i.test(it); });
                                 var dateCol = headCellsContent.findIndex(function (it) { return /date/i.test(it); });
+                                var openCol = headCellsContent.findIndex(function (it) { return /open/i.test(it); });
                                 var emailRows = table.querySelectorAll('tbody tr');
-                                var timezone = -7;
                                 var timezoneFormatted = "" + (timezone > 0 ? '+' : '-') + Math.abs(timezone).toString().padStart(2, '0') + ":00";
                                 return Array.prototype.map.call(emailRows, function (it) {
                                     var nameAndEmailContent = Array.prototype.map.call(it.querySelectorAll("td:nth-child(" + (fromCol + 1) + ") span"), function (it) { return it.textContent; });
                                     var name = nameAndEmailContent.find(function (it) { return !/@[^.]+\./.test(it); }) || '';
                                     var email = nameAndEmailContent.find(function (it) { return /@[^.]+\./.test(it); });
+                                    var opened = !!it.querySelector("td:nth-child(" + (openCol + 1) + ") img");
                                     var subjectLink = it.querySelector("td:nth-child(" + (subjectCol + 1) + ") a");
                                     var id = subjectLink.getAttribute('onclick').match(/\d+/)[0];
                                     var subject = subjectLink.textContent;
-                                    var date = it.querySelector("td:nth-child(" + (dateCol + 1) + ")").textContent;
-                                    var dateFormatted = date
+                                    var rawDate = it.querySelector("td:nth-child(" + (dateCol + 1) + ")").textContent;
+                                    var dateFormatted = rawDate
                                         .replace(/(\d{2})\/(\d{2})\/(\d{2}) (\d{2}:\d{2}[ap]m)/i, "20$3-$1-$2T$4:00" + timezoneFormatted)
                                         .replace(/(\d{2}:\d{2}[ap]m)/i, function (it) {
                                         var hours = parseInt(it.match(/^(\d+)/)[1], 10);
@@ -259,10 +261,11 @@ var Streamline = /** @class */ (function () {
                                         name: name,
                                         email: email,
                                         subject: subject,
+                                        opened: opened,
                                         date: new Date(dateFormatted).toISOString()
                                     };
                                 });
-                            })];
+                            }, this.timezone)];
                     case 4:
                         emails = _b.sent();
                         _i = 0, emails_1 = emails;
@@ -270,6 +273,7 @@ var Streamline = /** @class */ (function () {
                     case 5:
                         if (!(_i < emails_1.length)) return [3 /*break*/, 9];
                         email = emails_1[_i];
+                        if (!email.email) return [3 /*break*/, 8];
                         return [4 /*yield*/, page.goto("https://admin.streamlinevrs.com/print_email_preview.html?id=" + email.id)];
                     case 6:
                         response = _b.sent();
@@ -281,7 +285,7 @@ var Streamline = /** @class */ (function () {
                     case 8:
                         _i++;
                         return [3 /*break*/, 5];
-                    case 9: return [2 /*return*/, emails];
+                    case 9: return [2 /*return*/, emails.filter(function (it) { return it.email; })];
                 }
             });
         });
