@@ -38,8 +38,7 @@ describe('Email templates', () => {
   })
 
   it('Get unactioned emails', async () => {
-    const emails = await streamline.getAllUnactionedEmails()
-    console.log(emails)
+    await streamline.getAllUnactionedEmails()
   })
 
   it('Reply an email', async () => {

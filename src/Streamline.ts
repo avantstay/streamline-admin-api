@@ -1,4 +1,4 @@
-import puppeteer, { Browser, Page } from 'puppeteer'
+import puppeteer, { Browser, Page, Response } from 'puppeteer'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -17,6 +17,7 @@ export interface Email {
   email: string;
   subject: string;
   date: string;
+  html?: string;
 }
 
 export default class Streamline {
@@ -96,7 +97,7 @@ export default class Streamline {
     await page.goto(UNACTIONED_EMAILS_URL)
     await page.waitForSelector('table.table_results')
 
-    return await page.evaluate(() => {
+    const emails: Array<Email> = await page.evaluate(() => {
       const table            = document.querySelector('table.table_results') as HTMLElement
       const headCells        = table.querySelectorAll('thead th')
       const headCellsContent = Array.prototype.map.call(headCells, (it: HTMLElement) => it.textContent as string) as Array<string>
@@ -150,6 +151,13 @@ export default class Streamline {
         }
       })
     })
+
+    for (let email of emails) {
+      const response = await page.goto(`https://admin.streamlinevrs.com/print_email_preview.html?id=${email.id}`) as Response
+      email.html = await response.text()
+    }
+
+    return emails
   }
 
   async replyEmail(emailId: string | number, responseHtml: string) {

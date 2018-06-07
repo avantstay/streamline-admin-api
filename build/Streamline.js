@@ -210,18 +210,18 @@ var Streamline = /** @class */ (function () {
     };
     Streamline.prototype.getAllUnactionedEmails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var page;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var page, emails, _i, emails_1, email, response, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0: return [4 /*yield*/, this.page];
                     case 1:
-                        page = _a.sent();
+                        page = _b.sent();
                         return [4 /*yield*/, page.goto(UNACTIONED_EMAILS_URL)];
                     case 2:
-                        _a.sent();
+                        _b.sent();
                         return [4 /*yield*/, page.waitForSelector('table.table_results')];
                     case 3:
-                        _a.sent();
+                        _b.sent();
                         return [4 /*yield*/, page.evaluate(function () {
                                 var table = document.querySelector('table.table_results');
                                 var headCells = table.querySelectorAll('thead th');
@@ -263,7 +263,25 @@ var Streamline = /** @class */ (function () {
                                     };
                                 });
                             })];
-                    case 4: return [2 /*return*/, _a.sent()];
+                    case 4:
+                        emails = _b.sent();
+                        _i = 0, emails_1 = emails;
+                        _b.label = 5;
+                    case 5:
+                        if (!(_i < emails_1.length)) return [3 /*break*/, 9];
+                        email = emails_1[_i];
+                        return [4 /*yield*/, page.goto("https://admin.streamlinevrs.com/print_email_preview.html?id=" + email.id)];
+                    case 6:
+                        response = _b.sent();
+                        _a = email;
+                        return [4 /*yield*/, response.text()];
+                    case 7:
+                        _a.html = _b.sent();
+                        _b.label = 8;
+                    case 8:
+                        _i++;
+                        return [3 /*break*/, 5];
+                    case 9: return [2 /*return*/, emails];
                 }
             });
         });

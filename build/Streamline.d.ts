@@ -4,6 +4,7 @@ export interface Email {
     email: string;
     subject: string;
     date: string;
+    html?: string;
 }
 export default class Streamline {
     private browser;
