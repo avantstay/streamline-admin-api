@@ -6,6 +6,7 @@ const BASE_URL              = 'https://admin.streamlinevrs.com'
 const UNACTIONED_EMAILS_URL = `${BASE_URL}/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 const LOGIN_URL             = `${BASE_URL}/auth_login.html?logout=1`
 const REPLY_EMAIL_URL       = (id: string | number) => `${BASE_URL}/edit_system_email_reply.html?id=${id}&replay_all=1`
+const OPEN_EMAIL_URL        = (id: string | number) => `${BASE_URL}/edit_system_email.html?id=${id}`
 const EMAIL_TEMPLATE_URL    = (templateId: number, companyId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
 const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
 // const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
@@ -29,13 +30,16 @@ export default class Streamline {
   private readonly page: Promise<Page>
   private readonly timezone: number
 
-  constructor(params: { username: string, password: string, companyId: number, headless?: boolean, timezone?: number }) {
+  constructor(params: { username: string, password: string, companyId: number, headless?: boolean, timezone?: number, puppeteerArgs?: Array<string> }) {
     this.username  = params.username
     this.password  = params.password
     this.companyId = params.companyId
     this.timezone  = params.timezone || -7
 
-    this.browser = puppeteer.launch({ headless: !!params.headless })
+    this.browser = puppeteer.launch({
+      headless: !!params.headless,
+      args    : [ ...(params.puppeteerArgs || []) ]
+    })
     this.page    = this.browser
       .then(async browser => await browser.newPage())
       .then(async page => await this.authenticate(page))
@@ -165,6 +169,12 @@ export default class Streamline {
     }
 
     return emails.filter(it => it.email)
+  }
+
+  async openEmail(emailId: string | number) {
+    const page = await this.page
+    await page.goto(OPEN_EMAIL_URL(emailId))
+    await page.waitFor(2000)
   }
 
   async replyEmail(emailId: string | number, responseHtml: string) {

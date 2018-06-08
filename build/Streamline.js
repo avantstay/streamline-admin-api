@@ -52,6 +52,7 @@ var BASE_URL = 'https://admin.streamlinevrs.com';
 var UNACTIONED_EMAILS_URL = BASE_URL + "/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC";
 var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
 var REPLY_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email_reply.html?id=" + id + "&replay_all=1"; };
+var OPEN_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email.html?id=" + id; };
 var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
 var Streamline = /** @class */ (function () {
@@ -61,7 +62,10 @@ var Streamline = /** @class */ (function () {
         this.password = params.password;
         this.companyId = params.companyId;
         this.timezone = params.timezone || -7;
-        this.browser = puppeteer_1.default.launch({ headless: !!params.headless });
+        this.browser = puppeteer_1.default.launch({
+            headless: !!params.headless,
+            args: (params.puppeteerArgs || []).slice()
+        });
         this.page = this.browser
             .then(function (browser) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
             switch (_a.label) {
@@ -286,6 +290,25 @@ var Streamline = /** @class */ (function () {
                         _i++;
                         return [3 /*break*/, 5];
                     case 9: return [2 /*return*/, emails.filter(function (it) { return it.email; })];
+                }
+            });
+        });
+    };
+    Streamline.prototype.openEmail = function (emailId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var page;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.page];
+                    case 1:
+                        page = _a.sent();
+                        return [4 /*yield*/, page.goto(OPEN_EMAIL_URL(emailId))];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitFor(2000)];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });

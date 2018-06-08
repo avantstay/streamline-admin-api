@@ -20,12 +20,14 @@ export default class Streamline {
         companyId: number;
         headless?: boolean;
         timezone?: number;
+        puppeteerArgs?: Array<string>;
     });
     private authenticate(page);
     backupTemplate(templateId: number, destinationFolder: string): Promise<void>;
     updateEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void>;
     updateHomeNetworkId(homeLocationId: number, newNetworkId: number): Promise<void>;
     getAllUnactionedEmails(): Promise<Array<Email>>;
+    openEmail(emailId: string | number): Promise<void>;
     replyEmail(emailId: string | number, responseHtml: string): Promise<void>;
     close(): Promise<void>;
 }
