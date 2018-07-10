@@ -23,6 +23,7 @@ export default class Streamline {
         puppeteerArgs?: Array<string>;
     });
     private authenticate(page);
+    getTemplateById(templateId: number): Promise<any>;
     backupTemplate(templateId: number, destinationFolder: string): Promise<void>;
     updateEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void>;
     updateHomeNetworkId(homeLocationId: number, newNetworkId: number): Promise<void>;

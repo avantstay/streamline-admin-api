@@ -59,13 +59,17 @@ export default class Streamline {
     return page
   }
 
-  async backupTemplate(templateId: number, destinationFolder: string) {
+  async getTemplateById(templateId: number) {
     const page = await this.page
 
     await page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))
     await page.waitForSelector('[title=Source]')
 
-    const currentTemplate = await page.evaluate(() => (document.querySelector('textarea[name=page_text]') as HTMLTextAreaElement).value)
+    return await page.evaluate(() => (document.querySelector('textarea[name=page_text]') as HTMLTextAreaElement).value)
+  }
+
+  async backupTemplate(templateId: number, destinationFolder: string) {
+    const currentTemplate = await this.getTemplateById(templateId)
 
     fs.writeFileSync(path.join(destinationFolder, `template-${templateId}.html`), currentTemplate)
   }

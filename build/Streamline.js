@@ -110,9 +110,9 @@ var Streamline = /** @class */ (function () {
             });
         });
     };
-    Streamline.prototype.backupTemplate = function (templateId, destinationFolder) {
+    Streamline.prototype.getTemplateById = function (templateId) {
         return __awaiter(this, void 0, void 0, function () {
-            var page, currentTemplate;
+            var page;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.page];
@@ -125,7 +125,18 @@ var Streamline = /** @class */ (function () {
                     case 3:
                         _a.sent();
                         return [4 /*yield*/, page.evaluate(function () { return document.querySelector('textarea[name=page_text]').value; })];
-                    case 4:
+                    case 4: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    Streamline.prototype.backupTemplate = function (templateId, destinationFolder) {
+        return __awaiter(this, void 0, void 0, function () {
+            var currentTemplate;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.getTemplateById(templateId)];
+                    case 1:
                         currentTemplate = _a.sent();
                         fs.writeFileSync(path.join(destinationFolder, "template-" + templateId + ".html"), currentTemplate);
                         return [2 /*return*/];
