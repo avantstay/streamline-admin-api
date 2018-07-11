@@ -1,6 +1,7 @@
 import puppeteer, { Browser, Page, Response } from 'puppeteer'
 import * as fs from 'fs'
 import * as path from 'path'
+import uniqBy from 'lodash-es/uniqBy'
 
 const BASE_URL              = 'https://admin.streamlinevrs.com'
 const UNACTIONED_EMAILS_URL = `${BASE_URL}/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
@@ -125,7 +126,7 @@ export default class Streamline {
       return Array.prototype.map.call(emailRows, (it: HTMLElement) => {
         const nameAndEmailContent = Array.prototype.map.call(it.querySelectorAll(`td:nth-child(${fromCol + 1}) span`), (it: HTMLElement) => it.textContent)
 
-        const name  = nameAndEmailContent.find((it: string) => !/@[^.]+\./.test(it)) || ''
+        const name  = (nameAndEmailContent.find((it: string) => !/@[^.]+\./.test(it)) || '').replace(/\(.+\)/g, '').trim()
         const email = nameAndEmailContent.find((it: string) => /@[^.]+\./.test(it))
 
         const opened      = !!it.querySelector(`td:nth-child(${openCol + 1}) img`)
@@ -172,7 +173,7 @@ export default class Streamline {
       }
     }
 
-    return emails.filter(it => it.email)
+    return uniqBy(emails.filter(it => it.email), 'id')
   }
 
   async openEmail(emailId: string | number) {
