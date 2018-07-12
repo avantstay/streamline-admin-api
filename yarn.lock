@@ -43,7 +43,7 @@
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash@*":
+"@types/lodash@*", "@types/lodash@^4.14.111":
   version "4.14.111"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.111.tgz#d926250baa9526c0ffe85914dd10363068e7893a"
 

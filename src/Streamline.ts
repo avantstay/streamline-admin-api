@@ -1,7 +1,7 @@
 import puppeteer, { Browser, Page, Response } from 'puppeteer'
 import * as fs from 'fs'
 import * as path from 'path'
-import uniqBy from 'lodash-es/uniqBy'
+import { uniqBy } from 'lodash'
 
 const BASE_URL              = 'https://admin.streamlinevrs.com'
 const UNACTIONED_EMAILS_URL = `${BASE_URL}/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`

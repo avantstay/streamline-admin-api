@@ -48,7 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var puppeteer_1 = __importDefault(require("puppeteer"));
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
-var uniqBy_1 = __importDefault(require("lodash-es/uniqBy"));
+var lodash_1 = require("lodash");
 var BASE_URL = 'https://admin.streamlinevrs.com';
 var UNACTIONED_EMAILS_URL = BASE_URL + "/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC";
 var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
@@ -301,7 +301,7 @@ var Streamline = /** @class */ (function () {
                     case 8:
                         _i++;
                         return [3 /*break*/, 5];
-                    case 9: return [2 /*return*/, uniqBy_1.default(emails.filter(function (it) { return it.email; }), 'id')];
+                    case 9: return [2 /*return*/, lodash_1.uniqBy(emails.filter(function (it) { return it.email; }), 'id')];
                 }
             });
         });
