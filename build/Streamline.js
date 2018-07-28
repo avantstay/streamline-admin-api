@@ -174,7 +174,7 @@ var Streamline = /** @class */ (function () {
                         return [4 /*yield*/, page.click('[name=modify_button]')];
                     case 8:
                         _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('.tooltip')];
+                        return [4 /*yield*/, page.waitForSelector('.alert')];
                     case 9:
                         _a.sent();
                         return [4 /*yield*/, page.waitFor(1000)];

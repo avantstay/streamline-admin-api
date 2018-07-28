@@ -85,7 +85,7 @@ export default class Streamline {
     await page.waitForSelector('textarea[role=textbox]')
     await page.evaluate((newTemplate) => (document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement).value = newTemplate, newTemplateHtml)
     await page.click('[name=modify_button]')
-    await page.waitForSelector('.tooltip')
+    await page.waitForSelector('.alert')
     await page.waitFor(1000)
   }
 
