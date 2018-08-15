@@ -49,6 +49,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Streamline_1 = __importDefault(require("../src/Streamline"));
 var path = __importStar(require("path"));
 var fs = __importStar(require("fs"));
+var chai_1 = require("chai");
 var templateId = 27835;
 var streamline;
 var credentials = {
@@ -124,6 +125,25 @@ describe('Email templates', function () {
                 case 0: return [4 /*yield*/, streamline.replyEmail(56556933, "<p>Hey ho, let's go! " + new Date().toISOString() + "</p>")];
                 case 1:
                     _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('Get reservation extra fields', function () { return __awaiter(_this, void 0, void 0, function () {
+        var fieldNames, reservationIds, reservationFields;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    fieldNames = ['last_name', 'payment_comments', 'client_comments'];
+                    reservationIds = [11619171, 11618996, 11618980, 11617239];
+                    return [4 /*yield*/, streamline.getReservationsFields({
+                            fieldNames: fieldNames,
+                            reservationIds: reservationIds
+                        })];
+                case 1:
+                    reservationFields = _a.sent();
+                    chai_1.expect(Object.keys(reservationFields).length).to.equal(reservationIds.length);
+                    chai_1.expect(Object.keys(reservationFields[11619171]).length).to.equal(fieldNames.length);
                     return [2 /*return*/];
             }
         });

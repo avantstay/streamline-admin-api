@@ -1,7 +1,8 @@
 import puppeteer, { Browser, Page, Response } from 'puppeteer'
 import * as fs from 'fs'
 import * as path from 'path'
-import { uniqBy } from 'lodash'
+import { uniqBy, keyBy, mapValues } from 'lodash'
+import Bluebird from 'bluebird'
 
 const BASE_URL              = 'https://admin.streamlinevrs.com'
 const UNACTIONED_EMAILS_URL = `${BASE_URL}/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
@@ -10,8 +11,15 @@ const REPLY_EMAIL_URL       = (id: string | number) => `${BASE_URL}/edit_system_
 const OPEN_EMAIL_URL        = (id: string | number) => `${BASE_URL}/edit_system_email.html?id=${id}`
 const EMAIL_TEMPLATE_URL    = (templateId: number, companyId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
 const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
-// const INITIAL_SCREEN_URL    = `${BASE_URL}/index.html`
-// const ALL_EMAILS_URL        = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
+const VIEW_RESERVATION_URL  = (reservationId: number) => `${BASE_URL}/edit_reservation.html?reservation_id=${reservationId}`
+// const ALL_EMAILS_URL     = `${BASE_URL}/ds_emails.html?group_id=0&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
+// const INITIAL_SCREEN_URL = `${BASE_URL}/index.html`
+
+interface GetReservationFieldsArgs {
+  reservationIds: Array<number>,
+  fieldNames: Array<string>,
+  concurrency?: number
+}
 
 export interface Email {
   id: number;
@@ -28,7 +36,7 @@ export default class Streamline {
   private readonly username: string
   private readonly password: string
   private readonly companyId: number
-  private readonly page: Promise<Page>
+  private readonly authenticatedPage: Promise<Page>
   private readonly timezone: number
 
   constructor(params: { username: string, password: string, companyId: number, headless?: boolean, timezone?: number, puppeteerArgs?: Array<string> }) {
@@ -41,9 +49,13 @@ export default class Streamline {
       headless: !!params.headless,
       args    : [ ...(params.puppeteerArgs || []) ]
     })
-    this.page    = this.browser
-      .then(async browser => await browser.newPage())
+
+    this.authenticatedPage = this.getNewPage()
       .then(async page => await this.authenticate(page))
+  }
+
+  private async getNewPage() {
+    return this.browser.then(async browser => await browser.newPage())
   }
 
   private async authenticate(page: Page): Promise<Page> {
@@ -61,7 +73,7 @@ export default class Streamline {
   }
 
   async getTemplateById(templateId: number) {
-    const page = await this.page
+    const page = await this.authenticatedPage
 
     await page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))
     await page.waitForSelector('[title=Source]')
@@ -76,7 +88,7 @@ export default class Streamline {
   }
 
   async updateEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void> {
-    const page = await this.page
+    const page = await this.authenticatedPage
 
     await page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))
     await page.waitForSelector('[title=Source]')
@@ -90,7 +102,7 @@ export default class Streamline {
   }
 
   async updateHomeNetworkId(homeLocationId: number, newNetworkId: number) {
-    const page = await this.page
+    const page = await this.authenticatedPage
 
     await page.goto(EDIT_HOME_URL(homeLocationId))
     await page.waitForSelector('input[name=property_variable_5028]')
@@ -104,7 +116,7 @@ export default class Streamline {
   }
 
   async getAllUnactionedEmails(): Promise<Array<Email>> {
-    const page = await this.page
+    const page = await this.authenticatedPage
 
     await page.goto(UNACTIONED_EMAILS_URL)
     await page.waitForSelector('table.table_results')
@@ -177,13 +189,13 @@ export default class Streamline {
   }
 
   async openEmail(emailId: string | number) {
-    const page = await this.page
+    const page = await this.authenticatedPage
     await page.goto(OPEN_EMAIL_URL(emailId))
     await page.waitFor(2000)
   }
 
   async replyEmail(emailId: string | number, responseHtml: string) {
-    const page = await this.page
+    const page = await this.authenticatedPage
     await page.goto(REPLY_EMAIL_URL(emailId))
 
     await page.waitForSelector('[title=Source]')
@@ -199,6 +211,43 @@ export default class Streamline {
 
     await page.evaluate(() => (window as any).verifyForm())
     await page.waitFor(2000)
+  }
+
+
+  async getReservationsFields({ reservationIds, fieldNames, concurrency = 4 }: GetReservationFieldsArgs) {
+    await this.authenticatedPage
+
+    const reservationsWithFieldValues = await Bluebird.map(reservationIds, async (reservationId) => {
+      const page = await this.getNewPage()
+
+      await page.goto(VIEW_RESERVATION_URL(reservationId))
+
+      for (let fieldName of fieldNames) {
+        await page.waitForSelector(`[name="${fieldName}"]`)
+      }
+
+      const values = await Promise.all(
+        fieldNames.map(async (fieldName: string) => await page.evaluate((name) => {
+          const field = document.querySelector(`[name="${name}"]`) as HTMLInputElement
+
+          return {
+            name,
+            value: field ? field.value : null
+          }
+        }, fieldName)))
+
+      const valuesByFieldName = mapValues(keyBy(values, (it: any) => it.name), (it: any) => it.value)
+
+      return {
+        reservationId,
+        values: valuesByFieldName
+      }
+    }, { concurrency })
+
+    return mapValues(
+      keyBy(reservationsWithFieldValues, it => it.reservationId),
+      it => it.values
+    )
   }
 
   async close() {

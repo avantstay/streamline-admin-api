@@ -49,6 +49,7 @@ var puppeteer_1 = __importDefault(require("puppeteer"));
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
 var lodash_1 = require("lodash");
+var bluebird_1 = __importDefault(require("bluebird"));
 var BASE_URL = 'https://admin.streamlinevrs.com';
 var UNACTIONED_EMAILS_URL = BASE_URL + "/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC";
 var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
@@ -56,6 +57,7 @@ var REPLY_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email_repl
 var OPEN_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email.html?id=" + id; };
 var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
+var VIEW_RESERVATION_URL = function (reservationId) { return BASE_URL + "/edit_reservation.html?reservation_id=" + reservationId; };
 var Streamline = /** @class */ (function () {
     function Streamline(params) {
         var _this = this;
@@ -67,13 +69,7 @@ var Streamline = /** @class */ (function () {
             headless: !!params.headless,
             args: (params.puppeteerArgs || []).slice()
         });
-        this.page = this.browser
-            .then(function (browser) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, browser.newPage()];
-                case 1: return [2 /*return*/, _a.sent()];
-            }
-        }); }); })
+        this.authenticatedPage = this.getNewPage()
             .then(function (page) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, this.authenticate(page)];
@@ -81,6 +77,19 @@ var Streamline = /** @class */ (function () {
             }
         }); }); });
     }
+    Streamline.prototype.getNewPage = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                return [2 /*return*/, this.browser.then(function (browser) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, browser.newPage()];
+                            case 1: return [2 /*return*/, _a.sent()];
+                        }
+                    }); }); })];
+            });
+        });
+    };
     Streamline.prototype.authenticate = function (page) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -116,7 +125,7 @@ var Streamline = /** @class */ (function () {
             var page;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.page];
+                    case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _a.sent();
                         return [4 /*yield*/, page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))];
@@ -150,7 +159,7 @@ var Streamline = /** @class */ (function () {
             var page;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.page];
+                    case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _a.sent();
                         return [4 /*yield*/, page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))];
@@ -190,7 +199,7 @@ var Streamline = /** @class */ (function () {
             var page;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.page];
+                    case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _a.sent();
                         return [4 /*yield*/, page.goto(EDIT_HOME_URL(homeLocationId))];
@@ -230,7 +239,7 @@ var Streamline = /** @class */ (function () {
             var page, emails, _i, emails_1, email, response, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, this.page];
+                    case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _b.sent();
                         return [4 /*yield*/, page.goto(UNACTIONED_EMAILS_URL)];
@@ -311,7 +320,7 @@ var Streamline = /** @class */ (function () {
             var page;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.page];
+                    case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _a.sent();
                         return [4 /*yield*/, page.goto(OPEN_EMAIL_URL(emailId))];
@@ -330,7 +339,7 @@ var Streamline = /** @class */ (function () {
             var page;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.page];
+                    case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _a.sent();
                         return [4 /*yield*/, page.goto(REPLY_EMAIL_URL(emailId))];
@@ -362,6 +371,70 @@ var Streamline = /** @class */ (function () {
                     case 9:
                         _a.sent();
                         return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Streamline.prototype.getReservationsFields = function (_a) {
+        var reservationIds = _a.reservationIds, fieldNames = _a.fieldNames, _b = _a.concurrency, concurrency = _b === void 0 ? 4 : _b;
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            var reservationsWithFieldValues;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0: return [4 /*yield*/, this.authenticatedPage];
+                    case 1:
+                        _c.sent();
+                        return [4 /*yield*/, bluebird_1.default.map(reservationIds, function (reservationId) { return __awaiter(_this, void 0, void 0, function () {
+                                var _this = this;
+                                var page, _i, fieldNames_1, fieldName, values, valuesByFieldName;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4 /*yield*/, this.getNewPage()];
+                                        case 1:
+                                            page = _a.sent();
+                                            return [4 /*yield*/, page.goto(VIEW_RESERVATION_URL(reservationId))];
+                                        case 2:
+                                            _a.sent();
+                                            _i = 0, fieldNames_1 = fieldNames;
+                                            _a.label = 3;
+                                        case 3:
+                                            if (!(_i < fieldNames_1.length)) return [3 /*break*/, 6];
+                                            fieldName = fieldNames_1[_i];
+                                            return [4 /*yield*/, page.waitForSelector("[name=\"" + fieldName + "\"]")];
+                                        case 4:
+                                            _a.sent();
+                                            _a.label = 5;
+                                        case 5:
+                                            _i++;
+                                            return [3 /*break*/, 3];
+                                        case 6: return [4 /*yield*/, Promise.all(fieldNames.map(function (fieldName) { return __awaiter(_this, void 0, void 0, function () {
+                                                return __generator(this, function (_a) {
+                                                    switch (_a.label) {
+                                                        case 0: return [4 /*yield*/, page.evaluate(function (name) {
+                                                                var field = document.querySelector("[name=\"" + name + "\"]");
+                                                                return {
+                                                                    name: name,
+                                                                    value: field ? field.value : null
+                                                                };
+                                                            }, fieldName)];
+                                                        case 1: return [2 /*return*/, _a.sent()];
+                                                    }
+                                                });
+                                            }); }))];
+                                        case 7:
+                                            values = _a.sent();
+                                            valuesByFieldName = lodash_1.mapValues(lodash_1.keyBy(values, function (it) { return it.name; }), function (it) { return it.value; });
+                                            return [2 /*return*/, {
+                                                    reservationId: reservationId,
+                                                    values: valuesByFieldName
+                                                }];
+                                    }
+                                });
+                            }); }, { concurrency: concurrency })];
+                    case 2:
+                        reservationsWithFieldValues = _c.sent();
+                        return [2 /*return*/, lodash_1.mapValues(lodash_1.keyBy(reservationsWithFieldValues, function (it) { return it.reservationId; }), function (it) { return it.values; })];
                 }
             });
         });
