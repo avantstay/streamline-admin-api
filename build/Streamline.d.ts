@@ -1,3 +1,8 @@
+export interface GetReservationFieldsArgs {
+    reservationIds: Array<number>;
+    fieldNames: Array<string>;
+    concurrency?: number;
+}
 export interface Email {
     id: number;
     name: string;
@@ -12,7 +17,7 @@ export default class Streamline {
     private readonly username;
     private readonly password;
     private readonly companyId;
-    private readonly page;
+    private readonly authenticatedPage;
     private readonly timezone;
     constructor(params: {
         username: string;
@@ -22,6 +27,7 @@ export default class Streamline {
         timezone?: number;
         puppeteerArgs?: Array<string>;
     });
+    private getNewPage();
     private authenticate(page);
     getTemplateById(templateId: number): Promise<any>;
     backupTemplate(templateId: number, destinationFolder: string): Promise<void>;
@@ -30,5 +36,6 @@ export default class Streamline {
     getAllUnactionedEmails(): Promise<Array<Email>>;
     openEmail(emailId: string | number): Promise<void>;
     replyEmail(emailId: string | number, responseHtml: string): Promise<void>;
+    getReservationsFields({reservationIds, fieldNames, concurrency}: GetReservationFieldsArgs): Promise<any>;
     close(): Promise<void>;
 }
