@@ -425,6 +425,9 @@ var Streamline = /** @class */ (function () {
                                         case 7:
                                             values = _a.sent();
                                             valuesByFieldName = lodash_1.mapValues(lodash_1.keyBy(values, function (it) { return it.name; }), function (it) { return it.value; });
+                                            return [4 /*yield*/, page.close()];
+                                        case 8:
+                                            _a.sent();
                                             return [2 /*return*/, {
                                                     reservationId: reservationId,
                                                     values: valuesByFieldName

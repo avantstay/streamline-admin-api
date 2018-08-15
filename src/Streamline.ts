@@ -238,11 +238,14 @@ export default class Streamline {
 
       const valuesByFieldName = mapValues(keyBy(values, (it: any) => it.name), (it: any) => it.value)
 
+      await page.close()
+
       return {
         reservationId,
         values: valuesByFieldName
       }
     }, { concurrency })
+
 
     return mapValues(
       keyBy(reservationsWithFieldValues, it => it.reservationId),
