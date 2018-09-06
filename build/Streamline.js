@@ -48,6 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var puppeteer_1 = __importDefault(require("puppeteer"));
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
+var date_fns_1 = require("date-fns");
 var lodash_1 = require("lodash");
 var bluebird_1 = __importDefault(require("bluebird"));
 var BASE_URL = 'https://admin.streamlinevrs.com';
@@ -58,6 +59,55 @@ var OPEN_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email.html?
 var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
 var VIEW_RESERVATION_URL = function (reservationId) { return BASE_URL + "/edit_reservation.html?reservation_id=" + reservationId; };
+var COUPON_FORM_URL = 'https://admin.streamlinevrs.com/edit_company_coupon.html';
+var CouponStatus = {
+    pending: '1',
+    active: '2',
+    inactive: '3',
+    redeemed: '4'
+};
+var CouponLogic = {
+    regular: '1',
+    group: '2',
+    autoApply: '3'
+};
+var CouponType = {
+    oneTime: '1',
+    repeatable: '2'
+};
+var ReservationType = {
+    STA: 2,
+    OWN: 1,
+    NPG: 4,
+    POS: 7,
+    PRE: 8,
+    WHL: 9,
+    PGO: 14,
+    HAFamL: 16,
+    PDWTA: 20,
+    'Airbnb-NI': 80,
+    BPal: 35,
+    'BPal-PDWTA': 38,
+    'BPal-WHL': 39,
+    HAFamOLB: 40,
+    'RentalsUnited-WHL': 190,
+    'SC-ABnB': 236,
+    'RentalsUnited-PDWTA': 258
+};
+var ReservationSource = {
+    FDR: 3,
+    ADM: 4,
+    OWN: 5,
+    WSR: 7,
+    BCR: 8,
+    NET: 9,
+    PDWTA: 11
+};
+var SeasonPeriodType = {
+    creation: '1',
+    checkIn: '2',
+    checkOut: '3'
+};
 var Streamline = /** @class */ (function () {
     function Streamline(params) {
         var _this = this;
@@ -438,6 +488,269 @@ var Streamline = /** @class */ (function () {
                     case 2:
                         reservationsWithFieldValues = _c.sent();
                         return [2 /*return*/, lodash_1.mapValues(lodash_1.keyBy(reservationsWithFieldValues, function (it) { return it.reservationId; }), function (it) { return it.values; })];
+                }
+            });
+        });
+    };
+    Streamline.prototype.createCoupon = function (config) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            var code, name, status, logic, type, allowedHomes, allowedReservationSources, allowedReservationTypes, comments, discount, salePeriod, seasonPeriods, statusId, logicId, typeId, page, _a, _i, seasonPeriods_1, seasonPeriod;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        code = config.code, name = config.name, status = config.status, logic = config.logic, type = config.type, allowedHomes = config.allowedHomes, allowedReservationSources = config.allowedReservationSources, allowedReservationTypes = config.allowedReservationTypes, comments = config.comments, discount = config.discount, salePeriod = config.salePeriod, seasonPeriods = config.seasonPeriods;
+                        statusId = CouponStatus[status];
+                        logicId = CouponLogic[logic];
+                        typeId = CouponType[type];
+                        if (!statusId)
+                            throw new Error('Invalid coupon status');
+                        if (!logicId)
+                            throw new Error('Invalid coupon logic');
+                        if (!typeId)
+                            throw new Error('Invalid coupon type');
+                        return [4 /*yield*/, this.authenticatedPage];
+                    case 1:
+                        page = _b.sent();
+                        return [4 /*yield*/, page.goto(COUPON_FORM_URL)];
+                    case 2:
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('#code')
+                            // Fill first tab
+                        ];
+                    case 3:
+                        _b.sent();
+                        // Fill first tab
+                        return [4 /*yield*/, page.type('#code', code)];
+                    case 4:
+                        // Fill first tab
+                        _b.sent();
+                        return [4 /*yield*/, page.type('#name', name)];
+                    case 5:
+                        _b.sent();
+                        return [4 /*yield*/, page.select('#status_id', statusId)];
+                    case 6:
+                        _b.sent();
+                        return [4 /*yield*/, page.select('#logic_id', logicId)];
+                    case 7:
+                        _b.sent();
+                        return [4 /*yield*/, page.select('#type_id', typeId)
+                            // Fill discount type and amount
+                        ];
+                    case 8:
+                        _b.sent();
+                        _a = discount.type;
+                        switch (_a) {
+                            case 'percent': return [3 /*break*/, 9];
+                            case 'value': return [3 /*break*/, 12];
+                            case 'freeNights': return [3 /*break*/, 15];
+                            case 'nightlyValue': return [3 /*break*/, 19];
+                        }
+                        return [3 /*break*/, 22];
+                    case 9: return [4 /*yield*/, page.click('[name="logictype_id"][value="1"]')];
+                    case 10:
+                        _b.sent();
+                        return [4 /*yield*/, page.evaluate(function (v) { return document.querySelector('#percent_value').value = v.toFixed(1) + "%"; }, discount.amount)];
+                    case 11:
+                        _b.sent();
+                        return [3 /*break*/, 22];
+                    case 12: return [4 /*yield*/, page.click('[name="logictype_id"][value="2"]')];
+                    case 13:
+                        _b.sent();
+                        return [4 /*yield*/, page.evaluate(function (v) { return document.querySelector('#amount_value').value = "$" + v.toFixed(2); }, discount.amount)];
+                    case 14:
+                        _b.sent();
+                        return [3 /*break*/, 22];
+                    case 15: return [4 /*yield*/, page.click('[name="logictype_id"][value="3"]')];
+                    case 16:
+                        _b.sent();
+                        return [4 /*yield*/, page.select('#nights_limit', "" + discount.maxNights)];
+                    case 17:
+                        _b.sent();
+                        return [4 /*yield*/, page.select('#nights_free', "" + discount.freeNights)];
+                    case 18:
+                        _b.sent();
+                        return [3 /*break*/, 22];
+                    case 19: return [4 /*yield*/, page.click('[name="logictype_id"][value="4"]')];
+                    case 20:
+                        _b.sent();
+                        return [4 /*yield*/, page.evaluate(function (v) { return document.querySelector('#amount_nightly_value').value = "$" + v.toFixed(2); }, discount.amount)];
+                    case 21:
+                        _b.sent();
+                        return [3 /*break*/, 22];
+                    case 22:
+                        if (!comments) return [3 /*break*/, 26];
+                        return [4 /*yield*/, page.click('[href="#tab2"]')];
+                    case 23:
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('[name="description"]')];
+                    case 24:
+                        _b.sent();
+                        return [4 /*yield*/, page.type('[name="description"]', comments)];
+                    case 25:
+                        _b.sent();
+                        _b.label = 26;
+                    case 26: 
+                    // Select periods tab
+                    return [4 /*yield*/, page.click('[href="#tabPeriods"]')];
+                    case 27:
+                        // Select periods tab
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('#startdate')
+                            // Fill start date
+                        ];
+                    case 28:
+                        _b.sent();
+                        // Fill start date
+                        return [4 /*yield*/, page.evaluate(function (startDate) {
+                                document.querySelector('#startdate').value = startDate;
+                            }, date_fns_1.format(salePeriod.startDate, 'MM/DD/YYYY'))
+                            // Fill end date
+                        ];
+                    case 29:
+                        // Fill start date
+                        _b.sent();
+                        // Fill end date
+                        return [4 /*yield*/, page.evaluate(function (endDate) {
+                                document.querySelector('#enddate').value = endDate;
+                            }, date_fns_1.format(salePeriod.endDate, 'MM/DD/YYYY'))
+                            // select allowed homes tab
+                        ];
+                    case 30:
+                        // Fill end date
+                        _b.sent();
+                        // select allowed homes tab
+                        return [4 /*yield*/, page.click('[href="#tabLocations"]')];
+                    case 31:
+                        // select allowed homes tab
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('[name="homes_allow[]"]')
+                            // fill allowed homes
+                        ];
+                    case 32:
+                        _b.sent();
+                        if (!(allowedHomes === 'all')) return [3 /*break*/, 34];
+                        return [4 /*yield*/, page.click('input[value="Check All Homes"]')];
+                    case 33:
+                        _b.sent();
+                        return [3 /*break*/, 36];
+                    case 34:
+                        if (!Array.isArray(allowedHomes)) return [3 /*break*/, 36];
+                        return [4 /*yield*/, Promise.all(allowedHomes.map(function (it) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4 /*yield*/, page.evaluate(function (homeId) { return document.querySelector("[home_id=\"" + homeId + "\"]").checked = true; }, it)];
+                                        case 1: return [2 /*return*/, _a.sent()];
+                                    }
+                                });
+                            }); }))];
+                    case 35:
+                        _b.sent();
+                        _b.label = 36;
+                    case 36: 
+                    // select allowed reservation types tab
+                    return [4 /*yield*/, page.click('[href="#tabReservationTypes"]')];
+                    case 37:
+                        // select allowed reservation types tab
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('[name="reservation_types_allow[]"]')
+                            // fill allowed reservation types
+                        ];
+                    case 38:
+                        _b.sent();
+                        if (!(allowedReservationTypes === 'all')) return [3 /*break*/, 40];
+                        return [4 /*yield*/, page.click('#tabReservationTypes input[value="Check All"]')];
+                    case 39:
+                        _b.sent();
+                        return [3 /*break*/, 42];
+                    case 40:
+                        if (!Array.isArray(allowedReservationTypes)) return [3 /*break*/, 42];
+                        return [4 /*yield*/, Promise.all(allowedReservationTypes.map(function (it) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4 /*yield*/, page.evaluate(function (typeId) { return document.querySelector("[name=\"reservation_types_allow[]\"][value=\"" + typeId + "\"]").checked = true; }, ReservationType[it])];
+                                        case 1: return [2 /*return*/, _a.sent()];
+                                    }
+                                });
+                            }); }))];
+                    case 41:
+                        _b.sent();
+                        _b.label = 42;
+                    case 42: 
+                    // select allowed reservation source tab
+                    return [4 /*yield*/, page.click('[href="#tabReservationModules"]')];
+                    case 43:
+                        // select allowed reservation source tab
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('[name="reservation_madetypes_allow[]"]')
+                            // fill allowed reservation sources
+                        ];
+                    case 44:
+                        _b.sent();
+                        if (!(allowedReservationSources === 'all')) return [3 /*break*/, 46];
+                        return [4 /*yield*/, page.click('#tabReservationModules input[value="Check All"]')];
+                    case 45:
+                        _b.sent();
+                        return [3 /*break*/, 48];
+                    case 46:
+                        if (!Array.isArray(allowedReservationSources)) return [3 /*break*/, 48];
+                        return [4 /*yield*/, Promise.all(allowedReservationSources.map(function (it) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4 /*yield*/, page.evaluate(function (typeId) { return document.querySelector("[name=\"reservation_types_allow[]\"][value=\"" + typeId + "\"]").checked = true; }, ReservationSource[it])];
+                                        case 1: return [2 /*return*/, _a.sent()];
+                                    }
+                                });
+                            }); }))];
+                    case 47:
+                        _b.sent();
+                        _b.label = 48;
+                    case 48: 
+                    // Submit form
+                    return [4 /*yield*/, page.click('[type="submit"][value="Submit"]')];
+                    case 49:
+                        // Submit form
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('.alert-success')
+                            // Fill season periods
+                        ];
+                    case 50:
+                        _b.sent();
+                        _i = 0, seasonPeriods_1 = seasonPeriods;
+                        _b.label = 51;
+                    case 51:
+                        if (!(_i < seasonPeriods_1.length)) return [3 /*break*/, 60];
+                        seasonPeriod = seasonPeriods_1[_i];
+                        return [4 /*yield*/, page.click('[href="#tabPeriods"]')];
+                    case 52:
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('#startdate')];
+                    case 53:
+                        _b.sent();
+                        return [4 /*yield*/, page.select('#datetype_id_new', SeasonPeriodType[seasonPeriod.type])];
+                    case 54:
+                        _b.sent();
+                        return [4 /*yield*/, page.evaluate(function (endDate) {
+                                document.querySelector('#startdate_new').value = endDate;
+                            }, date_fns_1.format(seasonPeriod.startDate, 'MM/DD/YYYY'))];
+                    case 55:
+                        _b.sent();
+                        return [4 /*yield*/, page.evaluate(function (endDate) {
+                                document.querySelector('#enddate_new').value = endDate;
+                            }, date_fns_1.format(seasonPeriod.endDate, 'MM/DD/YYYY'))];
+                    case 56:
+                        _b.sent();
+                        return [4 /*yield*/, page.click('[type="submit"][value="Submit"]')];
+                    case 57:
+                        _b.sent();
+                        return [4 /*yield*/, page.waitForSelector('.alert-success')];
+                    case 58:
+                        _b.sent();
+                        _b.label = 59;
+                    case 59:
+                        _i++;
+                        return [3 /*break*/, 51];
+                    case 60: return [2 /*return*/];
                 }
             });
         });

@@ -3,6 +3,35 @@ export interface GetReservationFieldsArgs {
     fieldNames: Array<string>;
     concurrency?: number;
 }
+export interface SeasonPeriod {
+    type: 'creation' | 'checkIn' | 'checkOut';
+    startDate: Date | string;
+    endDate: Date | string;
+    minNights?: number;
+    maxNights?: number;
+}
+export interface CreateCouponParams {
+    code: string;
+    name: string;
+    status: 'pending' | 'active' | 'inactive' | 'redeemed';
+    logic: 'regular' | 'group' | 'autoApply';
+    type: 'oneTime' | 'repeatable';
+    comments?: string;
+    salePeriod: {
+        startDate: Date | string;
+        endDate: Date | string;
+    };
+    seasonPeriods: Array<SeasonPeriod>;
+    allowedHomes: 'all' | Array<number>;
+    allowedReservationTypes: 'all' | Array<'STA' | 'OWN' | 'NPG' | 'POS' | 'PRE' | 'WHL' | 'PGO' | 'HAFamL' | 'PDWTA' | 'Airbnb-NI' | 'BPal' | 'BPal-PDWTA' | 'BPal-WHL' | 'HAFamOLB' | 'RentalsUnited-WHL' | 'SC-ABnB' | 'RentalsUnited-PDWTA'>;
+    allowedReservationSources: 'all' | Array<'FDR' | 'ADM' | 'OWN' | 'WSR' | 'BCR' | 'NET' | 'PDWTA'>;
+    discount: {
+        type: 'percent' | 'value' | 'nightlyValue' | 'freeNights';
+        amount?: number;
+        maxNights?: number;
+        freeNights?: number;
+    };
+}
 export interface Email {
     id: number;
     name: string;
@@ -37,5 +66,6 @@ export default class Streamline {
     openEmail(emailId: string | number): Promise<void>;
     replyEmail(emailId: string | number, responseHtml: string): Promise<void>;
     getReservationsFields({reservationIds, fieldNames, concurrency}: GetReservationFieldsArgs): Promise<any>;
+    createCoupon(config: CreateCouponParams): Promise<void>;
     close(): Promise<void>;
 }
