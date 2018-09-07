@@ -45,13 +45,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Streamline_1 = __importDefault(require("../src/Streamline"));
-// import * as path from 'path'
-// import * as fs from 'fs'
-// import { expect } from 'chai'
-// let templateId = 27835
+var path = __importStar(require("path"));
+var fs = __importStar(require("fs"));
+var chai_1 = require("chai");
+var templateId = 27835;
 var streamline;
 var credentials = {
     username: process.env.STREAMLINE_USERNAME,
@@ -72,45 +79,83 @@ describe('Email templates', function () {
             }
         });
     }); });
-    //
-    // it('Backup template', async () => {
-    //   const tempDir = path.join(__dirname, 'temp')
-    //
-    //   if (!fs.existsSync(tempDir))
-    //     fs.mkdirSync(tempDir)
-    //
-    //   await streamline.backupTemplate(templateId, tempDir)
-    // })
-    //
-    // it('Update template', async () => {
-    //   const newTemplateHtml = `<html><body>${new Date().toISOString()}</body></html>`
-    //   await streamline.updateEmailTemplate(templateId, newTemplateHtml)
-    // })
-    //
-    // it('Update home network id', async () => {
-    //   await streamline.updateHomeNetworkId(209911, 314136)
-    // })
-    //
-    // it('Get unactioned emails', async () => {
-    //   await streamline.getAllUnactionedEmails()
-    // })
-    //
-    // it('Reply an email', async () => {
-    //   await streamline.replyEmail(56556933, `<p>Hey ho, let's go! ${new Date().toISOString()}</p>`)
-    // })
-    //
-    // it('Get reservation extra fields', async () => {
-    //   let fieldNames     = [ 'last_name', 'payment_comments', 'client_comments' ]
-    //   let reservationIds = [ 11619171, 11618996, 11618980, 11617239 ]
-    //
-    //   const reservationFields = await streamline.getReservationsFields({
-    //     fieldNames,
-    //     reservationIds
-    //   })
-    //
-    //   expect(Object.keys(reservationFields).length).to.equal(reservationIds.length)
-    //   expect(Object.keys(reservationFields[ 11619171 ]).length).to.equal(fieldNames.length)
-    // })
+    it('Backup template', function () { return __awaiter(_this, void 0, void 0, function () {
+        var tempDir;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    tempDir = path.join(__dirname, 'temp');
+                    if (!fs.existsSync(tempDir))
+                        fs.mkdirSync(tempDir);
+                    return [4 /*yield*/, streamline.backupTemplate(templateId, tempDir)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('Update template', function () { return __awaiter(_this, void 0, void 0, function () {
+        var newTemplateHtml;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    newTemplateHtml = "<html><body>" + new Date().toISOString() + "</body></html>";
+                    return [4 /*yield*/, streamline.updateEmailTemplate(templateId, newTemplateHtml)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('Update home network id', function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, streamline.updateHomeNetworkId(209911, 314136)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('Get unactioned emails', function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, streamline.getAllUnactionedEmails()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('Reply an email', function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, streamline.replyEmail(56556933, "<p>Hey ho, let's go! " + new Date().toISOString() + "</p>")];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('Get reservation extra fields', function () { return __awaiter(_this, void 0, void 0, function () {
+        var fieldNames, reservationIds, reservationFields;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    fieldNames = ['last_name', 'payment_comments', 'client_comments'];
+                    reservationIds = [11619171, 11618996, 11618980, 11617239];
+                    return [4 /*yield*/, streamline.getReservationsFields({
+                            fieldNames: fieldNames,
+                            reservationIds: reservationIds
+                        })];
+                case 1:
+                    reservationFields = _a.sent();
+                    chai_1.expect(Object.keys(reservationFields).length).to.equal(reservationIds.length);
+                    chai_1.expect(Object.keys(reservationFields[11619171]).length).to.equal(fieldNames.length);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
     it('Create coupon', function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -121,8 +166,8 @@ describe('Email templates', function () {
                         logic: 'regular',
                         type: 'oneTime',
                         discount: {
-                            amount: 10,
-                            type: 'percent'
+                            type: 'percent',
+                            amount: 10
                         },
                         salePeriod: {
                             startDate: '2018-09-10',
