@@ -343,6 +343,7 @@ export default class Streamline {
     const page = await this.authenticatedPage
 
     await page.goto(INBOX_URL)
+    await page.waitForSelector('img[alt="Refresh"]')
     await page.evaluate(() => (window as any).doAction('refresh'))
     await page.waitForSelector('img[src*="bigrotation.gif"]')
     await page.waitForSelector('#inbox-table_info')

@@ -504,14 +504,17 @@ var Streamline = /** @class */ (function () {
                         return [4 /*yield*/, page.goto(INBOX_URL)];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, page.evaluate(function () { return window.doAction('refresh'); })];
+                        return [4 /*yield*/, page.waitForSelector('img[alt="Refresh"]')];
                     case 3:
                         _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('img[src*="bigrotation.gif"]')];
+                        return [4 /*yield*/, page.evaluate(function () { return window.doAction('refresh'); })];
                     case 4:
                         _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('#inbox-table_info')];
+                        return [4 /*yield*/, page.waitForSelector('img[src*="bigrotation.gif"]')];
                     case 5:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('#inbox-table_info')];
+                    case 6:
                         _a.sent();
                         return [2 /*return*/];
                 }
