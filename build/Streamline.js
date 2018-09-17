@@ -60,6 +60,7 @@ var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
 var VIEW_RESERVATION_URL = function (reservationId) { return BASE_URL + "/edit_reservation.html?reservation_id=" + reservationId; };
 var COUPON_FORM_URL = 'https://admin.streamlinevrs.com/edit_company_coupon.html';
+var INBOX_URL = 'https://admin.streamlinevrs.com/emailsystem_client.html?system_queue_id=1&group_id=10';
 var CouponStatus = {
     pending: '1',
     active: '2',
@@ -488,6 +489,31 @@ var Streamline = /** @class */ (function () {
                     case 2:
                         reservationsWithFieldValues = _c.sent();
                         return [2 /*return*/, lodash_1.mapValues(lodash_1.keyBy(reservationsWithFieldValues, function (it) { return it.reservationId; }), function (it) { return it.values; })];
+                }
+            });
+        });
+    };
+    Streamline.prototype.refreshInbox = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var page;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.authenticatedPage];
+                    case 1:
+                        page = _a.sent();
+                        return [4 /*yield*/, page.goto(INBOX_URL)];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, page.evaluate(function () { return window.doAction('refresh'); })];
+                    case 3:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('img[src*="bigrotation.gif"]')];
+                    case 4:
+                        _a.sent();
+                        return [4 /*yield*/, page.waitForSelector('#inbox-table_info')];
+                    case 5:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });

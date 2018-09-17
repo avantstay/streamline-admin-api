@@ -66,6 +66,7 @@ export default class Streamline {
     openEmail(emailId: string | number): Promise<void>;
     replyEmail(emailId: string | number, responseHtml: string): Promise<void>;
     getReservationsFields({reservationIds, fieldNames, concurrency}: GetReservationFieldsArgs): Promise<any>;
+    refreshInbox(): Promise<void>;
     createCoupon(config: CreateCouponParams): Promise<void>;
     close(): Promise<void>;
 }

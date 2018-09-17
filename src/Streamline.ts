@@ -14,6 +14,7 @@ const EMAIL_TEMPLATE_URL    = (templateId: number, companyId: number) => `${BASE
 const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
 const VIEW_RESERVATION_URL  = (reservationId: number) => `${BASE_URL}/edit_reservation.html?reservation_id=${reservationId}`
 const COUPON_FORM_URL       = 'https://admin.streamlinevrs.com/edit_company_coupon.html'
+const INBOX_URL             = 'https://admin.streamlinevrs.com/emailsystem_client.html?system_queue_id=1&group_id=10'
 
 export interface GetReservationFieldsArgs {
   reservationIds: Array<number>,
@@ -336,6 +337,15 @@ export default class Streamline {
       keyBy(reservationsWithFieldValues, it => it.reservationId),
       it => it.values
     )
+  }
+
+  async refreshInbox() {
+    const page = await this.authenticatedPage
+
+    await page.goto(INBOX_URL)
+    await page.evaluate(() => (window as any).doAction('refresh'))
+    await page.waitForSelector('img[src*="bigrotation.gif"]')
+    await page.waitForSelector('#inbox-table_info')
   }
 
   async createCoupon(config: CreateCouponParams) {
