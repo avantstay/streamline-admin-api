@@ -1,15 +1,13 @@
-import puppeteer, { Browser, Page, Response } from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 import * as fs from 'fs'
 import * as path from 'path'
 import { format as formatDate } from 'date-fns'
-import { keyBy, mapValues, uniqBy } from 'lodash'
+import { keyBy, mapValues } from 'lodash'
 import Bluebird from 'bluebird'
 
 const BASE_URL              = 'https://admin.streamlinevrs.com'
-const UNACTIONED_EMAILS_URL = `${BASE_URL}/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC`
 const LOGIN_URL             = `${BASE_URL}/auth_login.html?logout=1`
 const REPLY_EMAIL_URL       = (id: string | number) => `${BASE_URL}/edit_system_email_reply.html?id=${id}&replay_all=1`
-const OPEN_EMAIL_URL        = (id: string | number) => `${BASE_URL}/edit_system_email.html?id=${id}`
 const EMAIL_TEMPLATE_URL    = (templateId: number, companyId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
 const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
 const VIEW_RESERVATION_URL  = (reservationId: number) => `${BASE_URL}/edit_reservation.html?reservation_id=${reservationId}`
@@ -201,85 +199,6 @@ export default class Streamline {
     await page.waitForSelector('input[name=property_variable_5028]')
   }
 
-  async getAllUnactionedEmails(): Promise<Array<Email>> {
-    const page = await this.authenticatedPage
-
-    await page.goto(UNACTIONED_EMAILS_URL)
-    await page.waitForSelector('table.table_results')
-
-    const emails: Array<Email> = await page.evaluate((timezone) => {
-      const table            = document.querySelector('table.table_results') as HTMLElement
-      const headCells        = table.querySelectorAll('thead th')
-      const headCellsContent = Array.prototype.map.call(headCells, (it: HTMLElement) => it.textContent as string) as Array<string>
-
-      const fromCol    = headCellsContent.findIndex(it => /from/i.test(it))
-      const subjectCol = headCellsContent.findIndex(it => /subject/i.test(it))
-      const dateCol    = headCellsContent.findIndex(it => /date/i.test(it))
-      const openCol    = headCellsContent.findIndex(it => /open/i.test(it))
-
-      const emailRows = table.querySelectorAll('tbody tr')
-
-      const timezoneFormatted = `${timezone > 0 ? '+' : '-'}${Math.abs(timezone).toString().padStart(2, '0')}:00`
-
-      return Array.prototype.map.call(emailRows, (it: HTMLElement) => {
-        const nameAndEmailContent = Array.prototype.map.call(it.querySelectorAll(`td:nth-child(${fromCol + 1}) span`), (it: HTMLElement) => it.textContent)
-
-        const name  = (nameAndEmailContent.find((it: string) => !/@[^.]+\./.test(it)) || '').replace(/\(.+\)/g, '').trim()
-        const email = nameAndEmailContent.find((it: string) => /@[^.]+\./.test(it))
-
-        const opened      = !!it.querySelector(`td:nth-child(${openCol + 1}) img`)
-        const subjectLink = it.querySelector(`td:nth-child(${subjectCol + 1}) a`) as HTMLElement
-        const id          = ((subjectLink.getAttribute('onclick') as string).match(/\d+/) as Array<string>)[ 0 ]
-        const subject     = subjectLink.textContent as string
-        const rawDate     = (it.querySelector(`td:nth-child(${dateCol + 1})`) as HTMLElement).textContent as string
-
-        const dateFormatted = rawDate
-          .replace(/(\d{2})\/(\d{2})\/(\d{2}) (\d{2}:\d{2}[ap]m)/i, `20$3-$1-$2T$4:00${timezoneFormatted}`)
-          .replace(/(\d{2}:\d{2}[ap]m)/i, (it: string) => {
-            let hours   = parseInt((it.match(/^(\d+)/) as Array<any>)[ 1 ], 10)
-            let minutes = parseInt((it.match(/:(\d+)/) as Array<any>)[ 1 ], 10)
-
-            const ampm = (it.match(/([ap]m)$/) as Array<any>)[ 1 ]
-
-            if (/pm/i.test(ampm) && hours < 12)
-              hours = hours + 12
-
-            if (/am/i.test(ampm) && hours === 12)
-              hours = hours - 12
-
-            const sHours   = hours.toString().padStart(2, '0')
-            const sMinutes = minutes.toString().padStart(2, '0')
-
-            return `${sHours}:${sMinutes}`
-          })
-
-        return {
-          id,
-          name,
-          email,
-          subject,
-          opened,
-          date: new Date(dateFormatted).toISOString()
-        }
-      })
-    }, this.timezone)
-
-    for (let email of emails) {
-      if (email.email) {
-        const response = await page.goto(`https://admin.streamlinevrs.com/print_email_preview.html?id=${email.id}`) as Response
-        email.html     = await response.text()
-      }
-    }
-
-    return uniqBy(emails.filter(it => it.email), 'id')
-  }
-
-  async openEmail(emailId: string | number) {
-    const page = await this.authenticatedPage
-    await page.goto(OPEN_EMAIL_URL(emailId))
-    await page.waitFor(2000)
-  }
-
   async replyEmail(emailId: string | number, responseHtml: string) {
     const page = await this.authenticatedPage
     await page.goto(REPLY_EMAIL_URL(emailId))
@@ -298,7 +217,6 @@ export default class Streamline {
     await page.evaluate(() => (window as any).verifyForm())
     await page.waitFor(2000)
   }
-
 
   async getReservationsFields({ reservationIds, fieldNames, concurrency = 4 }: GetReservationFieldsArgs): Promise<any> {
     await this.authenticatedPage

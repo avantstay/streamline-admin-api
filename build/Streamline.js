@@ -52,10 +52,8 @@ var date_fns_1 = require("date-fns");
 var lodash_1 = require("lodash");
 var bluebird_1 = __importDefault(require("bluebird"));
 var BASE_URL = 'https://admin.streamlinevrs.com';
-var UNACTIONED_EMAILS_URL = BASE_URL + "/ds_emails.html?group_id=10&responsible_processor_id=0&system_queue_id=1&all_global_accounts=0&ss=1&page=1&show_all=1&page_id=1&order=creation_date%20DESC";
 var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
 var REPLY_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email_reply.html?id=" + id + "&replay_all=1"; };
-var OPEN_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email.html?id=" + id; };
 var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
 var VIEW_RESERVATION_URL = function (reservationId) { return BASE_URL + "/edit_reservation.html?reservation_id=" + reservationId; };
@@ -279,106 +277,6 @@ var Streamline = /** @class */ (function () {
                         _a.sent();
                         return [4 /*yield*/, page.waitForSelector('input[name=property_variable_5028]')];
                     case 10:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Streamline.prototype.getAllUnactionedEmails = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var page, emails, _i, emails_1, email, response, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0: return [4 /*yield*/, this.authenticatedPage];
-                    case 1:
-                        page = _b.sent();
-                        return [4 /*yield*/, page.goto(UNACTIONED_EMAILS_URL)];
-                    case 2:
-                        _b.sent();
-                        return [4 /*yield*/, page.waitForSelector('table.table_results')];
-                    case 3:
-                        _b.sent();
-                        return [4 /*yield*/, page.evaluate(function (timezone) {
-                                var table = document.querySelector('table.table_results');
-                                var headCells = table.querySelectorAll('thead th');
-                                var headCellsContent = Array.prototype.map.call(headCells, function (it) { return it.textContent; });
-                                var fromCol = headCellsContent.findIndex(function (it) { return /from/i.test(it); });
-                                var subjectCol = headCellsContent.findIndex(function (it) { return /subject/i.test(it); });
-                                var dateCol = headCellsContent.findIndex(function (it) { return /date/i.test(it); });
-                                var openCol = headCellsContent.findIndex(function (it) { return /open/i.test(it); });
-                                var emailRows = table.querySelectorAll('tbody tr');
-                                var timezoneFormatted = "" + (timezone > 0 ? '+' : '-') + Math.abs(timezone).toString().padStart(2, '0') + ":00";
-                                return Array.prototype.map.call(emailRows, function (it) {
-                                    var nameAndEmailContent = Array.prototype.map.call(it.querySelectorAll("td:nth-child(" + (fromCol + 1) + ") span"), function (it) { return it.textContent; });
-                                    var name = (nameAndEmailContent.find(function (it) { return !/@[^.]+\./.test(it); }) || '').replace(/\(.+\)/g, '').trim();
-                                    var email = nameAndEmailContent.find(function (it) { return /@[^.]+\./.test(it); });
-                                    var opened = !!it.querySelector("td:nth-child(" + (openCol + 1) + ") img");
-                                    var subjectLink = it.querySelector("td:nth-child(" + (subjectCol + 1) + ") a");
-                                    var id = subjectLink.getAttribute('onclick').match(/\d+/)[0];
-                                    var subject = subjectLink.textContent;
-                                    var rawDate = it.querySelector("td:nth-child(" + (dateCol + 1) + ")").textContent;
-                                    var dateFormatted = rawDate
-                                        .replace(/(\d{2})\/(\d{2})\/(\d{2}) (\d{2}:\d{2}[ap]m)/i, "20$3-$1-$2T$4:00" + timezoneFormatted)
-                                        .replace(/(\d{2}:\d{2}[ap]m)/i, function (it) {
-                                        var hours = parseInt(it.match(/^(\d+)/)[1], 10);
-                                        var minutes = parseInt(it.match(/:(\d+)/)[1], 10);
-                                        var ampm = it.match(/([ap]m)$/)[1];
-                                        if (/pm/i.test(ampm) && hours < 12)
-                                            hours = hours + 12;
-                                        if (/am/i.test(ampm) && hours === 12)
-                                            hours = hours - 12;
-                                        var sHours = hours.toString().padStart(2, '0');
-                                        var sMinutes = minutes.toString().padStart(2, '0');
-                                        return sHours + ":" + sMinutes;
-                                    });
-                                    return {
-                                        id: id,
-                                        name: name,
-                                        email: email,
-                                        subject: subject,
-                                        opened: opened,
-                                        date: new Date(dateFormatted).toISOString()
-                                    };
-                                });
-                            }, this.timezone)];
-                    case 4:
-                        emails = _b.sent();
-                        _i = 0, emails_1 = emails;
-                        _b.label = 5;
-                    case 5:
-                        if (!(_i < emails_1.length)) return [3 /*break*/, 9];
-                        email = emails_1[_i];
-                        if (!email.email) return [3 /*break*/, 8];
-                        return [4 /*yield*/, page.goto("https://admin.streamlinevrs.com/print_email_preview.html?id=" + email.id)];
-                    case 6:
-                        response = _b.sent();
-                        _a = email;
-                        return [4 /*yield*/, response.text()];
-                    case 7:
-                        _a.html = _b.sent();
-                        _b.label = 8;
-                    case 8:
-                        _i++;
-                        return [3 /*break*/, 5];
-                    case 9: return [2 /*return*/, lodash_1.uniqBy(emails.filter(function (it) { return it.email; }), 'id')];
-                }
-            });
-        });
-    };
-    Streamline.prototype.openEmail = function (emailId) {
-        return __awaiter(this, void 0, void 0, function () {
-            var page;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.authenticatedPage];
-                    case 1:
-                        page = _a.sent();
-                        return [4 /*yield*/, page.goto(OPEN_EMAIL_URL(emailId))];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, page.waitFor(2000)];
-                    case 3:
                         _a.sent();
                         return [2 /*return*/];
                 }

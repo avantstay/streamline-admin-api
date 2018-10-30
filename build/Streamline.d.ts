@@ -62,8 +62,6 @@ export default class Streamline {
     backupTemplate(templateId: number, destinationFolder: string): Promise<void>;
     updateEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void>;
     updateHomeNetworkId(homeLocationId: number, newNetworkId: number): Promise<void>;
-    getAllUnactionedEmails(): Promise<Array<Email>>;
-    openEmail(emailId: string | number): Promise<void>;
     replyEmail(emailId: string | number, responseHtml: string): Promise<void>;
     getReservationsFields({reservationIds, fieldNames, concurrency}: GetReservationFieldsArgs): Promise<any>;
     refreshInbox(): Promise<void>;

@@ -42,10 +42,6 @@ describe('Email templates', () => {
     await streamline.updateHomeNetworkId(209911, 314136)
   })
 
-  it('Get unactioned emails', async () => {
-    await streamline.getAllUnactionedEmails()
-  })
-
   it('Reply an email', async () => {
     await streamline.replyEmail(56556933, `<p>Hey ho, let's go! ${new Date().toISOString()}</p>`)
   })
