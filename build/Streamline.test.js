@@ -63,7 +63,6 @@ var streamline;
 var credentials = {
     username: process.env.STREAMLINE_USERNAME,
     password: process.env.STREAMLINE_PASSWORD,
-    companyId: parseInt(process.env.STREAMLINE_COMPANY_ID, 10)
 };
 describe('Email templates', function () {
     before(function () {

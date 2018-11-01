@@ -9,7 +9,6 @@ let streamline: Streamline
 let credentials = {
   username : process.env.STREAMLINE_USERNAME as string,
   password : process.env.STREAMLINE_PASSWORD as string,
-  companyId: parseInt(process.env.STREAMLINE_COMPANY_ID as string, 10)
 }
 
 describe('Email templates', () => {

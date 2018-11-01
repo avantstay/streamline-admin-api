@@ -5,14 +5,15 @@ import { format as formatDate } from 'date-fns'
 import { keyBy, mapValues } from 'lodash'
 import Bluebird from 'bluebird'
 
-const BASE_URL              = 'https://admin.streamlinevrs.com'
-const LOGIN_URL             = `${BASE_URL}/auth_login.html?logout=1`
-const REPLY_EMAIL_URL       = (id: string | number) => `${BASE_URL}/edit_system_email_reply.html?id=${id}&replay_all=1`
-const EMAIL_TEMPLATE_URL    = (templateId: number, companyId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
-const EDIT_HOME_URL         = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
-const VIEW_RESERVATION_URL  = (reservationId: number) => `${BASE_URL}/edit_reservation.html?reservation_id=${reservationId}`
-const COUPON_FORM_URL       = 'https://admin.streamlinevrs.com/edit_company_coupon.html'
-const INBOX_URL             = 'https://admin.streamlinevrs.com/emailsystem_client.html?system_queue_id=1&group_id=10'
+const BASE_URL                      = 'https://admin.streamlinevrs.com'
+const LOGIN_URL                     = `${BASE_URL}/auth_login.html?logout=1`
+const REPLY_EMAIL_URL               = (id: string | number) => `${BASE_URL}/edit_system_email_reply.html?id=${id}&replay_all=1`
+const EMAIL_TEMPLATE_URL            = (templateId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}`
+const STREAMSIGN_EMAIL_TEMPLATE_URL = (templateId: number) => `${BASE_URL}edit_company_document_template.html?template_id=${templateId}`
+const EDIT_HOME_URL                 = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
+const VIEW_RESERVATION_URL          = (reservationId: number) => `${BASE_URL}/edit_reservation.html?reservation_id=${reservationId}`
+const COUPON_FORM_URL               = 'https://admin.streamlinevrs.com/edit_company_coupon.html'
+const INBOX_URL                     = 'https://admin.streamlinevrs.com/emailsystem_client.html?system_queue_id=1&group_id=10'
 
 export interface GetReservationFieldsArgs {
   reservationIds: Array<number>,
@@ -105,29 +106,17 @@ export interface CreateCouponParams {
   }
 }
 
-export interface Email {
-  id: number;
-  name: string;
-  email: string;
-  subject: string;
-  opened: boolean;
-  date: string;
-  html?: string;
-}
-
 export default class Streamline {
   private browser: Promise<Browser>
   private readonly username: string
   private readonly password: string
-  private readonly companyId: number
   private readonly authenticatedPage: Promise<Page>
   private readonly timezone: number
 
-  constructor(params: { username: string, password: string, companyId: number, headless?: boolean, timezone?: number, puppeteerArgs?: Array<string> }) {
-    this.username  = params.username
-    this.password  = params.password
-    this.companyId = params.companyId
-    this.timezone  = params.timezone || -7
+  constructor(params: { username: string, password: string, headless?: boolean, timezone?: number, puppeteerArgs?: Array<string> }) {
+    this.username = params.username
+    this.password = params.password
+    this.timezone = params.timezone || -7
 
     this.browser = puppeteer.launch({
       headless: !!params.headless,
@@ -159,7 +148,7 @@ export default class Streamline {
   async getTemplateById(templateId: number) {
     const page = await this.authenticatedPage
 
-    await page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))
+    await page.goto(EMAIL_TEMPLATE_URL(templateId))
     await page.waitForSelector('[title=Source]')
 
     return await page.evaluate(() => (document.querySelector('textarea[name=page_text]') as HTMLTextAreaElement).value)
@@ -174,13 +163,30 @@ export default class Streamline {
   async updateEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void> {
     const page = await this.authenticatedPage
 
-    await page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))
+    await page.goto(EMAIL_TEMPLATE_URL(templateId))
     await page.waitForSelector('[title=Source]')
     await page.waitFor(3000)
     await page.click('[title=Source]')
     await page.waitForSelector('textarea[role=textbox]')
     await page.evaluate((newTemplate) => (document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement).value = newTemplate, newTemplateHtml)
     await page.click('[name=modify_button]')
+    await page.waitForSelector('.alert')
+    await page.waitFor(1000)
+  }
+
+  async updateStreamSignEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void> {
+    const page = await this.authenticatedPage
+
+    await page.goto(EMAIL_TEMPLATE_URL(templateId))
+    await page.waitForSelector('[href="#asignatureaway"]')
+    await page.waitFor(3000)
+    await page.click('[href="#asignatureaway"]')
+    await page.waitForSelector('[title=Source]')
+    await page.waitFor(3000)
+    await page.click('[title=Source]')
+    await page.waitForSelector('textarea[role=textbox]')
+    await page.evaluate((newTemplate) => (document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement).value = newTemplate, newTemplateHtml)
+    await page.click('[name=submit]')
     await page.waitForSelector('.alert')
     await page.waitFor(1000)
   }
