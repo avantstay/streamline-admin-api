@@ -178,9 +178,9 @@ export default class Streamline {
     const page = await this.authenticatedPage
 
     await page.goto(EMAIL_TEMPLATE_URL(templateId))
-    await page.waitForSelector('[href="#asignatureaway"]')
+    await page.waitForSelector('[href=#asignatureaway]')
     await page.waitFor(3000)
-    await page.click('[href="#asignatureaway"]')
+    await page.click('[href=#asignatureaway]')
     await page.waitForSelector('[title=Source]')
     await page.waitFor(3000)
     await page.click('[title=Source]')

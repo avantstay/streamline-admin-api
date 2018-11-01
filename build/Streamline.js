@@ -254,13 +254,13 @@ var Streamline = /** @class */ (function () {
                         return [4 /*yield*/, page.goto(EMAIL_TEMPLATE_URL(templateId))];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, page.waitForSelector('[href="#asignatureaway"]')];
+                        return [4 /*yield*/, page.waitForSelector('[href=#asignatureaway]')];
                     case 3:
                         _a.sent();
                         return [4 /*yield*/, page.waitFor(3000)];
                     case 4:
                         _a.sent();
-                        return [4 /*yield*/, page.click('[href="#asignatureaway"]')];
+                        return [4 /*yield*/, page.click('[href=#asignatureaway]')];
                     case 5:
                         _a.sent();
                         return [4 /*yield*/, page.waitForSelector('[title=Source]')];
