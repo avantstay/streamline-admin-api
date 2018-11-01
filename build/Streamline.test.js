@@ -62,7 +62,7 @@ var templateId = 27835;
 var streamline;
 var credentials = {
     username: process.env.STREAMLINE_USERNAME,
-    password: process.env.STREAMLINE_PASSWORD,
+    password: process.env.STREAMLINE_PASSWORD
 };
 describe('Email templates', function () {
     before(function () {
@@ -106,6 +106,10 @@ describe('Email templates', function () {
             }
         });
     }); });
+    // it('Update StreamSign template', async () => {
+    //   const newTemplateHtml = `<html><body>${new Date().toISOString()}</body></html>`
+    //   await streamline.updateStreamSignEmailTemplate(33751, newTemplateHtml)
+    // })
     it('Update home network id', function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {

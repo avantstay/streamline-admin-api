@@ -7,8 +7,8 @@ let templateId = 27835
 let streamline: Streamline
 
 let credentials = {
-  username : process.env.STREAMLINE_USERNAME as string,
-  password : process.env.STREAMLINE_PASSWORD as string,
+  username: process.env.STREAMLINE_USERNAME as string,
+  password: process.env.STREAMLINE_PASSWORD as string
 }
 
 describe('Email templates', () => {
@@ -36,6 +36,11 @@ describe('Email templates', () => {
     const newTemplateHtml = `<html><body>${new Date().toISOString()}</body></html>`
     await streamline.updateEmailTemplate(templateId, newTemplateHtml)
   })
+
+  // it('Update StreamSign template', async () => {
+  //   const newTemplateHtml = `<html><body>${new Date().toISOString()}</body></html>`
+  //   await streamline.updateStreamSignEmailTemplate(33751, newTemplateHtml)
+  // })
 
   it('Update home network id', async () => {
     await streamline.updateHomeNetworkId(209911, 314136)

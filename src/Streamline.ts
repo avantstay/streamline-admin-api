@@ -9,7 +9,7 @@ const BASE_URL                      = 'https://admin.streamlinevrs.com'
 const LOGIN_URL                     = `${BASE_URL}/auth_login.html?logout=1`
 const REPLY_EMAIL_URL               = (id: string | number) => `${BASE_URL}/edit_system_email_reply.html?id=${id}&replay_all=1`
 const EMAIL_TEMPLATE_URL            = (templateId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}`
-const STREAMSIGN_EMAIL_TEMPLATE_URL = (templateId: number) => `${BASE_URL}edit_company_document_template.html?template_id=${templateId}`
+const STREAMSIGN_EMAIL_TEMPLATE_URL = (templateId: number) => `${BASE_URL}/edit_company_document_template.html?template_id=${templateId}`
 const EDIT_HOME_URL                 = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
 const VIEW_RESERVATION_URL          = (reservationId: number) => `${BASE_URL}/edit_reservation.html?reservation_id=${reservationId}`
 const COUPON_FORM_URL               = 'https://admin.streamlinevrs.com/edit_company_coupon.html'
@@ -177,10 +177,10 @@ export default class Streamline {
   async updateStreamSignEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void> {
     const page = await this.authenticatedPage
 
-    await page.goto(EMAIL_TEMPLATE_URL(templateId))
-    await page.waitForSelector('[href=#asignatureaway]')
+    await page.goto(STREAMSIGN_EMAIL_TEMPLATE_URL(templateId))
+    await page.waitForSelector('[href="#asignatureaway"]')
     await page.waitFor(3000)
-    await page.click('[href=#asignatureaway]')
+    await page.click('[href="#asignatureaway"]')
     await page.waitForSelector('[title=Source]')
     await page.waitFor(3000)
     await page.click('[title=Source]')
