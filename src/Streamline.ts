@@ -1,19 +1,19 @@
-import puppeteer, { Browser, Page } from 'puppeteer'
+import puppeteer, {Browser, Page} from 'puppeteer'
 import * as fs from 'fs'
 import * as path from 'path'
-import { format as formatDate } from 'date-fns'
-import { keyBy, mapValues } from 'lodash'
+import {format as formatDate} from 'date-fns'
+import {keyBy, mapValues} from 'lodash'
 import Bluebird from 'bluebird'
 
-const BASE_URL                      = 'https://admin.streamlinevrs.com'
-const LOGIN_URL                     = `${BASE_URL}/auth_login.html?logout=1`
-const REPLY_EMAIL_URL               = (id: string | number) => `${BASE_URL}/edit_system_email_reply.html?id=${id}&replay_all=1`
-const EMAIL_TEMPLATE_URL            = (templateId: number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}`
-const STREAMSIGN_EMAIL_TEMPLATE_URL = (templateId: number) => `${BASE_URL}/edit_company_document_template.html?template_id=${templateId}`
-const EDIT_HOME_URL                 = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
-const VIEW_RESERVATION_URL          = (reservationId: number) => `${BASE_URL}/edit_reservation.html?reservation_id=${reservationId}`
-const COUPON_FORM_URL               = 'https://admin.streamlinevrs.com/edit_company_coupon.html'
-const INBOX_URL                     = 'https://admin.streamlinevrs.com/emailsystem_client.html?system_queue_id=1&group_id=10'
+const BASE_URL = 'https://admin.streamlinevrs.com'
+const LOGIN_URL = `${BASE_URL}/auth_login.html?logout=1`
+const REPLY_EMAIL_URL = (id: string | number) => `${BASE_URL}/edit_system_email_reply.html?id=${id}&replay_all=1`
+const EMAIL_TEMPLATE_URL = (templateId: number, companyId: string | number) => `${BASE_URL}/editor_email_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
+const STREAMSIGN_EMAIL_TEMPLATE_URL = (templateId: number, companyId: string | number) => `${BASE_URL}/edit_company_document_template.html?template_id=${templateId}&company_id=${companyId}`
+const EDIT_HOME_URL = (homeId: number) => `${BASE_URL}/edit_home.html?home_id=${homeId}`
+const VIEW_RESERVATION_URL = (reservationId: number) => `${BASE_URL}/edit_reservation.html?reservation_id=${reservationId}`
+const COUPON_FORM_URL = 'https://admin.streamlinevrs.com/edit_company_coupon.html'
+const INBOX_URL = 'https://admin.streamlinevrs.com/emailsystem_client.html?system_queue_id=1&group_id=10'
 
 export interface GetReservationFieldsArgs {
   reservationIds: Array<number>,
@@ -30,56 +30,56 @@ export interface SeasonPeriod {
 }
 
 const CouponStatus = {
-  pending : '1',
-  active  : '2',
+  pending: '1',
+  active: '2',
   inactive: '3',
   redeemed: '4'
 }
 
 const CouponLogic = {
-  regular  : '1',
-  group    : '2',
+  regular: '1',
+  group: '2',
   autoApply: '3'
 }
 
 const CouponType = {
-  oneTime   : '1',
+  oneTime: '1',
   repeatable: '2'
 }
 
 const ReservationType = {
-  STA                  : 2,
-  OWN                  : 1,
-  NPG                  : 4,
-  POS                  : 7,
-  PRE                  : 8,
-  WHL                  : 9,
-  PGO                  : 14,
-  HAFamL               : 16,
-  PDWTA                : 20,
-  'Airbnb-NI'          : 80,
-  BPal                 : 35,
-  'BPal-PDWTA'         : 38,
-  'BPal-WHL'           : 39,
-  HAFamOLB             : 40,
-  'RentalsUnited-WHL'  : 190,
-  'SC-ABnB'            : 236,
+  STA: 2,
+  OWN: 1,
+  NPG: 4,
+  POS: 7,
+  PRE: 8,
+  WHL: 9,
+  PGO: 14,
+  HAFamL: 16,
+  PDWTA: 20,
+  'Airbnb-NI': 80,
+  BPal: 35,
+  'BPal-PDWTA': 38,
+  'BPal-WHL': 39,
+  HAFamOLB: 40,
+  'RentalsUnited-WHL': 190,
+  'SC-ABnB': 236,
   'RentalsUnited-PDWTA': 258
 }
 
 const ReservationSource = {
-  FDR  : 3,
-  ADM  : 4,
-  OWN  : 5,
-  WSR  : 7,
-  BCR  : 8,
-  NET  : 9,
+  FDR: 3,
+  ADM: 4,
+  OWN: 5,
+  WSR: 7,
+  BCR: 8,
+  NET: 9,
   PDWTA: 11
 }
 
 const SeasonPeriodType = {
   creation: '1',
-  checkIn : '2',
+  checkIn: '2',
   checkOut: '3'
 }
 
@@ -106,21 +106,32 @@ export interface CreateCouponParams {
   }
 }
 
+export interface StreamlineConstructorParams {
+  username: string,
+  password: string,
+  companyId: string | number,
+  headless?: boolean,
+  timezone?: number,
+  puppeteerArgs?: Array<string>
+}
+
 export default class Streamline {
   private browser: Promise<Browser>
   private readonly username: string
   private readonly password: string
   private readonly authenticatedPage: Promise<Page>
   private readonly timezone: number
+  private readonly companyId: string | number
 
-  constructor(params: { username: string, password: string, headless?: boolean, timezone?: number, puppeteerArgs?: Array<string> }) {
+  constructor(params: StreamlineConstructorParams) {
     this.username = params.username
     this.password = params.password
+    this.companyId = params.companyId
     this.timezone = params.timezone || -7
 
     this.browser = puppeteer.launch({
       headless: !!params.headless,
-      args    : [ ...(params.puppeteerArgs || []) ]
+      args: [...(params.puppeteerArgs || [])]
     })
 
     this.authenticatedPage = this.getNewPage()
@@ -148,7 +159,7 @@ export default class Streamline {
   async getTemplateById(templateId: number) {
     const page = await this.authenticatedPage
 
-    await page.goto(EMAIL_TEMPLATE_URL(templateId))
+    await page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))
     await page.waitForSelector('[title=Source]')
 
     return await page.evaluate(() => (document.querySelector('textarea[name=page_text]') as HTMLTextAreaElement).value)
@@ -163,7 +174,7 @@ export default class Streamline {
   async updateEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void> {
     const page = await this.authenticatedPage
 
-    await page.goto(EMAIL_TEMPLATE_URL(templateId))
+    await page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))
     await page.waitForSelector('[title=Source]')
     await page.waitFor(3000)
     await page.click('[title=Source]')
@@ -177,7 +188,7 @@ export default class Streamline {
   async updateStreamSignEmailTemplate(templateId: number, newTemplateHtml: string): Promise<void> {
     const page = await this.authenticatedPage
 
-    await page.goto(STREAMSIGN_EMAIL_TEMPLATE_URL(templateId))
+    await page.goto(STREAMSIGN_EMAIL_TEMPLATE_URL(templateId, this.companyId))
     await page.waitForSelector('[href="#asignatureaway"]')
     await page.waitFor(3000)
     await page.click('[href="#asignatureaway"]')
@@ -215,16 +226,16 @@ export default class Streamline {
     await page.waitForSelector('textarea[role=textbox]')
 
     await page.evaluate((responseHtml) => {
-      const textArea        = document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement
+      const textArea = document.querySelector('textarea[role=textbox]') as HTMLTextAreaElement
       const originalContent = textArea.value as string
-      textArea.value        = originalContent.replace(/(<body.*?>)([^]*?)(-+\s?original message\s?-+)/i, `$1\n${responseHtml}\n<p>&nbsp;</p>\n$3`)
+      textArea.value = originalContent.replace(/(<body.*?>)([^]*?)(-+\s?original message\s?-+)/i, `$1\n${responseHtml}\n<p>&nbsp;</p>\n$3`)
     }, responseHtml)
 
     await page.evaluate(() => (window as any).verifyForm())
     await page.waitFor(2000)
   }
 
-  async getReservationsFields({ reservationIds, fieldNames, concurrency = 4 }: GetReservationFieldsArgs): Promise<any> {
+  async getReservationsFields({reservationIds, fieldNames, concurrency = 4}: GetReservationFieldsArgs): Promise<any> {
     await this.authenticatedPage
 
     const reservationsWithFieldValues = await Bluebird.map(reservationIds, async (reservationId) => {
@@ -254,7 +265,7 @@ export default class Streamline {
         reservationId,
         values: valuesByFieldName
       }
-    }, { concurrency })
+    }, {concurrency})
 
 
     return mapValues(
@@ -274,11 +285,11 @@ export default class Streamline {
   }
 
   async createCoupon(config: CreateCouponParams) {
-    const { code, name, status, logic, type, allowedHomes, allowedReservationSources, allowedReservationTypes, comments, discount, salePeriod, seasonPeriods } = config
+    const {code, name, status, logic, type, allowedHomes, allowedReservationSources, allowedReservationTypes, comments, discount, salePeriod, seasonPeriods} = config
 
-    const statusId = CouponStatus[ status ]
-    const logicId  = CouponLogic[ logic ]
-    const typeId   = CouponType[ type ]
+    const statusId = CouponStatus[status]
+    const logicId = CouponLogic[logic]
+    const typeId = CouponType[type]
 
     if (!statusId)
       throw new Error('Invalid coupon status')
@@ -375,7 +386,7 @@ export default class Streamline {
         allowedReservationTypes.map(
           async it => await page.evaluate(
             (typeId) => (document.querySelector(`[name="reservation_types_allow[]"][value="${typeId}"]`) as HTMLInputElement).checked = true,
-            ReservationType[ it ]
+            ReservationType[it]
           )))
     }
 
@@ -391,7 +402,7 @@ export default class Streamline {
         allowedReservationSources.map(
           async it => await page.evaluate(
             (typeId) => (document.querySelector(`[name="reservation_types_allow[]"][value="${typeId}"]`) as HTMLInputElement).checked = true,
-            ReservationSource[ it ]
+            ReservationSource[it]
           )))
     }
 
@@ -404,7 +415,7 @@ export default class Streamline {
       await page.click('[href="#tabPeriods"]')
       await page.waitForSelector('#startdate')
 
-      await page.select('#datetype_id_new', SeasonPeriodType[ seasonPeriod.type ])
+      await page.select('#datetype_id_new', SeasonPeriodType[seasonPeriod.type])
 
       await page.evaluate((endDate: string) => {
         (document.querySelector('#startdate_new') as HTMLInputElement).value = endDate
