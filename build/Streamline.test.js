@@ -62,7 +62,8 @@ var templateId = 27835;
 var streamline;
 var credentials = {
     username: process.env.STREAMLINE_USERNAME,
-    password: process.env.STREAMLINE_PASSWORD
+    password: process.env.STREAMLINE_PASSWORD,
+    companyId: process.env.STREAMLINE_COMPANY_ID,
 };
 describe('Email templates', function () {
     before(function () {

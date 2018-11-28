@@ -1,14 +1,15 @@
 import Streamline from '../src/Streamline'
 import * as path from 'path'
 import * as fs from 'fs'
-import { expect } from 'chai'
+import {expect} from 'chai'
 
 let templateId = 27835
 let streamline: Streamline
 
 let credentials = {
   username: process.env.STREAMLINE_USERNAME as string,
-  password: process.env.STREAMLINE_PASSWORD as string
+  password: process.env.STREAMLINE_PASSWORD as string,
+  companyId: process.env.STREAMLINE_COMPANY_ID as string,
 }
 
 describe('Email templates', () => {
@@ -51,8 +52,8 @@ describe('Email templates', () => {
   })
 
   it('Get reservation extra fields', async () => {
-    let fieldNames     = [ 'last_name', 'payment_comments', 'client_comments' ]
-    let reservationIds = [ 11619171, 11618996, 11618980, 11617239 ]
+    let fieldNames = ['last_name', 'payment_comments', 'client_comments']
+    let reservationIds = [11619171, 11618996, 11618980, 11617239]
 
     const reservationFields = await streamline.getReservationsFields({
       fieldNames,
@@ -60,38 +61,38 @@ describe('Email templates', () => {
     })
 
     expect(Object.keys(reservationFields).length).to.equal(reservationIds.length)
-    expect(Object.keys(reservationFields[ 11619171 ]).length).to.equal(fieldNames.length)
+    expect(Object.keys(reservationFields[11619171]).length).to.equal(fieldNames.length)
   })
 
   it('Create coupon', async () => {
     await streamline.createCoupon({
-      code                     : 'TEST009',
-      name                     : 'Test only 009',
-      status                   : 'active',
-      logic                    : 'regular',
-      type                     : 'oneTime',
-      discount                 : {
-        type  : 'percent',
+      code: 'TEST009',
+      name: 'Test only 009',
+      status: 'active',
+      logic: 'regular',
+      type: 'oneTime',
+      discount: {
+        type: 'percent',
         amount: 10
       },
-      salePeriod               : {
+      salePeriod: {
         startDate: '2018-09-10',
-        endDate  : '2019-09-10'
+        endDate: '2019-09-10'
       },
-      seasonPeriods            : [
+      seasonPeriods: [
         {
           startDate: '2018-09-10',
-          endDate  : '2019-09-10',
-          type     : 'checkIn'
+          endDate: '2019-09-10',
+          type: 'checkIn'
         },
         {
           startDate: '2018-09-10',
-          endDate  : '2019-09-10',
-          type     : 'creation'
+          endDate: '2019-09-10',
+          type: 'creation'
         }
       ],
-      allowedHomes             : 'all',
-      allowedReservationTypes  : 'all',
+      allowedHomes: 'all',
+      allowedReservationTypes: 'all',
       allowedReservationSources: 'all'
     })
   })

@@ -54,8 +54,8 @@ var bluebird_1 = __importDefault(require("bluebird"));
 var BASE_URL = 'https://admin.streamlinevrs.com';
 var LOGIN_URL = BASE_URL + "/auth_login.html?logout=1";
 var REPLY_EMAIL_URL = function (id) { return BASE_URL + "/edit_system_email_reply.html?id=" + id + "&replay_all=1"; };
-var EMAIL_TEMPLATE_URL = function (templateId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId; };
-var STREAMSIGN_EMAIL_TEMPLATE_URL = function (templateId) { return BASE_URL + "/edit_company_document_template.html?template_id=" + templateId; };
+var EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/editor_email_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
+var STREAMSIGN_EMAIL_TEMPLATE_URL = function (templateId, companyId) { return BASE_URL + "/edit_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 var EDIT_HOME_URL = function (homeId) { return BASE_URL + "/edit_home.html?home_id=" + homeId; };
 var VIEW_RESERVATION_URL = function (reservationId) { return BASE_URL + "/edit_reservation.html?reservation_id=" + reservationId; };
 var COUPON_FORM_URL = 'https://admin.streamlinevrs.com/edit_company_coupon.html';
@@ -113,6 +113,7 @@ var Streamline = /** @class */ (function () {
         var _this = this;
         this.username = params.username;
         this.password = params.password;
+        this.companyId = params.companyId;
         this.timezone = params.timezone || -7;
         this.browser = puppeteer_1.default.launch({
             headless: !!params.headless,
@@ -177,7 +178,7 @@ var Streamline = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _a.sent();
-                        return [4 /*yield*/, page.goto(EMAIL_TEMPLATE_URL(templateId))];
+                        return [4 /*yield*/, page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))];
                     case 2:
                         _a.sent();
                         return [4 /*yield*/, page.waitForSelector('[title=Source]')];
@@ -211,7 +212,7 @@ var Streamline = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _a.sent();
-                        return [4 /*yield*/, page.goto(EMAIL_TEMPLATE_URL(templateId))];
+                        return [4 /*yield*/, page.goto(EMAIL_TEMPLATE_URL(templateId, this.companyId))];
                     case 2:
                         _a.sent();
                         return [4 /*yield*/, page.waitForSelector('[title=Source]')];
@@ -251,7 +252,7 @@ var Streamline = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.authenticatedPage];
                     case 1:
                         page = _a.sent();
-                        return [4 /*yield*/, page.goto(STREAMSIGN_EMAIL_TEMPLATE_URL(templateId))];
+                        return [4 /*yield*/, page.goto(STREAMSIGN_EMAIL_TEMPLATE_URL(templateId, this.companyId))];
                     case 2:
                         _a.sent();
                         return [4 /*yield*/, page.waitForSelector('[href="#asignatureaway"]')];

@@ -32,19 +32,22 @@ export interface CreateCouponParams {
         freeNights?: number;
     };
 }
+export interface StreamlineConstructorParams {
+    username: string;
+    password: string;
+    companyId: string | number;
+    headless?: boolean;
+    timezone?: number;
+    puppeteerArgs?: Array<string>;
+}
 export default class Streamline {
     private browser;
     private readonly username;
     private readonly password;
     private readonly authenticatedPage;
     private readonly timezone;
-    constructor(params: {
-        username: string;
-        password: string;
-        headless?: boolean;
-        timezone?: number;
-        puppeteerArgs?: Array<string>;
-    });
+    private readonly companyId;
+    constructor(params: StreamlineConstructorParams);
     private getNewPage();
     private authenticate(page);
     getTemplateById(templateId: number): Promise<any>;
