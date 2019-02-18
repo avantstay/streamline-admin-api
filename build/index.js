@@ -1,7 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var Streamline_1 = __importDefault(require("./Streamline"));
-exports.default = Streamline_1.default;
+var getRegularEmailTemplate_1 = require("./methods/getRegularEmailTemplate");
+exports.getRegularEmailTemplate = getRegularEmailTemplate_1.getRegularEmailTemplate;
+var updateRegularEmailTemplate_1 = require("./methods/updateRegularEmailTemplate");
+exports.updateRegularEmailTemplate = updateRegularEmailTemplate_1.updateRegularEmailTemplate;
+var getReservationExtraFields_1 = require("./methods/getReservationExtraFields");
+exports.getReservationExtraFields = getReservationExtraFields_1.getReservationExtraFields;
+var client_1 = require("./client");
+exports.createStreamLineClient = client_1.createStreamLineClient;
