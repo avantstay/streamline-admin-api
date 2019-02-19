@@ -2,7 +2,7 @@ import cheerio from 'cheerio'
 import { clientGet, StreamLineClient } from '../client'
 import { EMAIL_TEMPLATE_URL } from '../urls'
 
-export const getRegularEmailTemplate = async ({ client, companyId, templateId }: { client: StreamLineClient | Promise<StreamLineClient>, companyId: string | number, templateId: number, templateBody: string }) => {
+export const getRegularEmailTemplate = async ({ client, companyId, templateId }: { client: StreamLineClient | Promise<StreamLineClient>, companyId: string | number, templateId: number }) => {
   const authenticatedClient = await client
 
   const url = EMAIL_TEMPLATE_URL(templateId, companyId)
