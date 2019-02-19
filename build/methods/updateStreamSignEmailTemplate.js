@@ -66,10 +66,10 @@ exports.updateStreamSignEmailTemplate = function (_a) {
                     $ = cheerio_1.default.load(body);
                     formElements = $('form').serializeArray().reduce(function (prev, curr) {
                         if (prev.hasOwnProperty(curr.name) && Array.isArray(prev[curr.name])) {
-                            prev[name].push(curr.value);
+                            prev[curr.name].push(curr.value);
                         }
                         else if (prev.hasOwnProperty(curr.name)) {
-                            prev[name] = [prev[name], curr.value];
+                            prev[curr.name] = [prev[curr.name], curr.value];
                         }
                         else {
                             prev[curr.name] = curr.value;
