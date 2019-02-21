@@ -9,8 +9,10 @@ export const getReservationExtraFields = async ({ client, reservationId, fields 
   const { body } = await clientGet(authenticatedClient, url)
   const $ = cheerio.load(body)
 
-  return fields.map(name => ({
-    name,
-    value: $(`[name="${name}"]`).val(),
-  }))
+  return fields
+    .map(name => $(`[name="${name}"]`))
+    .map(field => ({
+      name: field.attr('name'),
+      value: field.val(),
+    }))
 }

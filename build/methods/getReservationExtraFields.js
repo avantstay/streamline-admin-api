@@ -56,9 +56,11 @@ exports.getReservationExtraFields = function (_a) {
                 case 2:
                     body = (_b.sent()).body;
                     $ = cheerio_1.default.load(body);
-                    return [2 /*return*/, fields.map(function (name) { return ({
-                            name: name,
-                            value: $("[name=\"" + name + "\"]").val(),
+                    return [2 /*return*/, fields
+                            .map(function (name) { return $("[name=\"" + name + "\"]"); })
+                            .map(function (field) { return ({
+                            name: field.attr('name'),
+                            value: field.val(),
                         }); })];
             }
         });
