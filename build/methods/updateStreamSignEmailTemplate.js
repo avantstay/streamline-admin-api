@@ -65,14 +65,15 @@ exports.updateStreamSignEmailTemplate = function (_a) {
                     body = (_b.sent()).body;
                     $ = cheerio_1.default.load(body);
                     formElements = $('form').serializeArray().reduce(function (prev, curr) {
-                        if (prev.hasOwnProperty(curr.name) && Array.isArray(prev[curr.name])) {
-                            prev[curr.name].push(curr.value);
+                        var name = curr.name.replace('[]', '');
+                        if (prev.hasOwnProperty(name) && Array.isArray(prev[name])) {
+                            prev[name].push(curr.value);
                         }
-                        else if (prev.hasOwnProperty(curr.name)) {
-                            prev[curr.name] = [prev[curr.name], curr.value];
+                        else if (prev.hasOwnProperty(name)) {
+                            prev[name] = [prev[name], curr.value];
                         }
                         else {
-                            prev[curr.name] = curr.value;
+                            prev[name] = curr.value;
                         }
                         return prev;
                     }, {});

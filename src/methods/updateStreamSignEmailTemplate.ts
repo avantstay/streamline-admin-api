@@ -10,12 +10,14 @@ export const updateStreamSignEmailTemplate = async ({ client, companyId, templat
   const $ = cheerio.load(body)
 
   const formElements = $('form').serializeArray().reduce((prev, curr) => {
-    if (prev.hasOwnProperty(curr.name) && Array.isArray(prev[curr.name])) {
-      prev[curr.name].push(curr.value)
-    } else if (prev.hasOwnProperty(curr.name)) {
-      prev[curr.name] = [prev[curr.name], curr.value]
+    const name = curr.name.replace('[]', '')
+
+    if (prev.hasOwnProperty(name) && Array.isArray(prev[name])) {
+      prev[name].push(curr.value)
+    } else if (prev.hasOwnProperty(name)) {
+      prev[name] = [prev[name], curr.value]
     } else {
-      prev[curr.name] = curr.value
+      prev[name] = curr.value
     }
     return prev
   }, {} as any)
