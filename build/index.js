@@ -14,3 +14,5 @@ var updateRegularEmailTemplate_1 = require("./methods/updateRegularEmailTemplate
 exports.updateRegularEmailTemplate = updateRegularEmailTemplate_1.updateRegularEmailTemplate;
 var updateStreamSignEmailTemplate_1 = require("./methods/updateStreamSignEmailTemplate");
 exports.updateStreamSignEmailTemplate = updateStreamSignEmailTemplate_1.updateStreamSignEmailTemplate;
+var upsertCoupon_1 = require("./methods/upsertCoupon");
+exports.upsertCoupon = upsertCoupon_1.upsertCoupon;

@@ -5,3 +5,7 @@ exports.EMAIL_TEMPLATE_URL = function (templateId, companyId) { return exports.B
 exports.EMAIL_STREAMSIGN_TEMPLATE_URL = function (templateId, companyId) { return exports.BASE_URL + "/edit_company_document_template.html?template_id=" + templateId + "&company_id=" + companyId; };
 exports.VIEW_RESERVATION_URL = function (reservationId) { return exports.BASE_URL + "/ds_reservation_info.html?reservation_id=" + reservationId; };
 exports.VIEW_PROPERTY_URL = function (propertyId) { return exports.BASE_URL + "/ds_home_details.html?home_id=" + propertyId; };
+exports.EDIT_COUPON_URL = function (couponId) {
+    if (couponId === void 0) { couponId = 0; }
+    return exports.BASE_URL + "/edit_company_coupon.html?id=" + couponId;
+};
